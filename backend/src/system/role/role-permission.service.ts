@@ -92,7 +92,8 @@ export class RolePermissionsService extends BaseService<RolePermissions> {
     permissionsMap: PermissionStateMap,
     req: AuthorizedRequest,
   ) {
-    if (!this.actionCdToIdMap || !this.menuCdToIdMap) await this.loadMaps(); // 맵 로드 보장
+    // if (!this.actionCdToIdMap || !this.menuCdToIdMap)
+    await this.loadMaps(); // 맵 로드 보장
     const before = await this.getRolePermissionMap(roleId);
     if (req) {
       req['_auditBefore'] = before;
