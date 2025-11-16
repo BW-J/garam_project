@@ -17,6 +17,7 @@ async function bootstrap() {
     'http://192.168.0.25:5173', // 내부 네트워크 접속용
     // 'http://bwjung.iptime.org', // 외부 도메인 (포트포워딩 포트가 80/443이 아니라면 포트까지 적어야 할 수 있습니다)
     'http://bwjung.iptime.org:5173', // 예시: 외부에서 5173 포트로 접속 시
+    'http://garamga.kr:5173',
   ];
 
   const logPath = process.env.LOG_PATH || './logs';
