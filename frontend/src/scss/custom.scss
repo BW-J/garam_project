@@ -1,0 +1,253 @@
+.p-treetable .editing-row .p-treetable-toggler {
+  display: none !important;
+}
+
+.p-column-filter .p-inputtext,
+.p-column-filter .p-dropdown,
+.p-filter-column .p-inputtext,
+.p-filter-column .p-dropdown {
+  border: none !important;
+  border-bottom: 2px solid var(--surface-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    border-bottom-color: var(--primary-color) !important;
+    background-color: var(--surface-card) !important;
+  }
+
+  &:focus {
+    border-bottom-color: var(--primary-color) !important;
+    background-color: var(--surface-card) !important;
+  }
+}
+
+.p-datatable th.text-center .p-column-header-content {
+  justify-content: center;
+}
+
+/* --- 레이아웃 및 페이지네이션 하단 고정 스타일 (수정됨) --- */
+
+/* 1. 페이지 전체 컨테이너 */
+.page-flex-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* TabView 설정 */
+.p-tabview.flex-grow-1 {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+.p-tabview.flex-grow-1 .p-tabview-panels {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column; /* 👈 패널 내부도 세로 정렬 */
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  padding: 1rem 0 0 0 !important;
+}
+.p-tabview .p-tabview-panel {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* 2. 화면 꽉 채우는 카드 */
+.card-flex-full {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100% !important;
+  width: 100% !important;
+  max-width: 100%;
+  min-height: 0;
+  min-width: 0;
+  margin-bottom: 0 !important;
+
+  .p-card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    padding: 1.5rem; /* 양옆 여백 유지 */
+  }
+
+  .p-card-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+    padding: 0 !important;
+  }
+}
+
+/* 3. DataTable/TreeTable 래퍼 */
+.primereact-datatable-wrapper,
+.primereact-treetable-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* 4. PrimeReact 내부 강제 스타일링 (페이지네이션 하단 고정 핵심) */
+.primereact-datatable-wrapper .p-datatable,
+.primereact-treetable-wrapper .p-treetable {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
+  min-height: 0;
+
+  /* 테이블 본문 영역(스크롤 영역)이 남은 공간을 모두 차지 */
+  .p-datatable-wrapper,
+  .p-treetable-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    /* 👇 중요: 내부 테이블이 꽉 차지 않더라도 상단 정렬되도록 설정 */
+    justify-content: flex-start;
+  }
+
+  /* 👇 [수정] 실제 테이블 요소는 자연스러운 높이를 유지하도록 변경 (flex-grow 제거) */
+  .p-datatable-wrapper .p-datatable-table,
+  .p-treetable-wrapper .p-treetable-table {
+    flex-grow: 0; /* 1에서 0으로 변경하여 강제 늘림 방지 */
+    height: auto !important; /* 높이 강제 설정 해제 */
+  }
+
+  /* 페이지네이션 영역 스타일 */
+  .p-paginator {
+    border-width: 1px 0 0 0 !important;
+    background: transparent !important;
+    margin-top: auto; /* 혹시 모를 상황 대비 안전장치 */
+  }
+}
+
+/* 테이블 셀 내 텍스트 줄 바꿈 방지 및 말줄임표 처리 */
+.p-datatable .p-datatable-tbody > tr > td,
+.p-treetable .p-treetable-tbody > tr > td {
+  white-space: nowrap !important; /* 강제로 한 줄로 표시 */
+  overflow: hidden !important; /* 넘치는 내용 숨김 */
+  text-overflow: ellipsis !important; /* 넘치면 ... 으로 표시 */
+  max-width: 30rem; /* (선택사항) 너무 긴 컨텐츠에 대한 안전장치 */
+}
+
+.p-datatable .p-column-header-content,
+.p-treetable .p-column-header-content {
+  white-space: nowrap !important;
+}
+
+/* Grid Flex 설정 */
+.grid.page-flex-container {
+  flex-grow: 1;
+  flex-wrap: nowrap;
+}
+.grid.page-flex-container > .flex {
+  display: flex;
+}
+
+.p-tooltip-pre {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: 0.875rem;
+  max-width: 600px;
+  max-height: 400px;
+  overflow: auto;
+  white-space: pre;
+}
+
+.truncate-cell-content {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+.genealogy-node {
+  min-width: 100px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  .p-tag {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.3rem;
+  }
+}
+
+.primereact-orgchart-wrapper-small {
+  height: 250px;
+  overflow: auto;
+  padding: 0.5rem;
+  .p-organizationchart-table {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.primereact-orgchart-wrapper-full {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 1.5rem;
+  .p-organizationchart-table {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.genealogy-full-modal .p-dialog-content {
+  padding: 0 !important;
+}
+
+.genealogy-dashboard-card {
+  .p-card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .p-card-content {
+    flex-grow: 1;
+    overflow: hidden;
+  }
+}
+
+/* --- 반응형 테이블용 유틸리티 클래스 --- */
+@media screen and (max-width: 767px) {
+  .hidden-on-mobile {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 1199px) {
+  .hidden-on-tablet {
+    display: none !important;
+  }
+}

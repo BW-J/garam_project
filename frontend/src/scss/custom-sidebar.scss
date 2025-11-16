@@ -1,0 +1,162 @@
+/* =======================================================
+   PRIME REACT SIDEBAR + PANELMENU THEME (FIXED ACTIVE + SPACING)
+   ======================================================= */
+
+:root {
+  --sidebar-bg: #2e3142;
+  --sidebar-header-bg: #262837;
+  --sidebar-hover-bg: #3a3c50;
+  --sidebar-active-bg: #4a4e6a;
+  --sidebar-text: #fafafa;
+  --sidebar-icon: #d5d7dc;
+  --sidebar-divider: rgba(255, 255, 255, 0.08);
+  --sidebar-highlight: #7367f0;
+}
+
+/* Sidebar Base */
+.p-sidebar {
+  background-color: var(--sidebar-bg) !important;
+  color: var(--sidebar-text) !important;
+  border-right: 1px solid var(--sidebar-divider) !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.p-sidebar-content {
+  background-color: var(--sidebar-bg) !important;
+  color: var(--sidebar-text) !important;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sidebar-hover-bg) transparent;
+}
+
+/* 상단 헤더 */
+.p-sidebar .p-sidebar-header {
+  background-color: var(--sidebar-header-bg) !important;
+  border-bottom: 1px solid var(--sidebar-divider);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.p-sidebar .p-sidebar-header span,
+.p-sidebar .p-sidebar-header .p-sidebar-header-icon {
+  color: var(--sidebar-text) !important;
+}
+
+/* ==============================
+   PANELMENU 구조
+   ============================== */
+.p-sidebar .p-panelmenu {
+  background-color: transparent !important;
+  color: var(--sidebar-text) !important;
+  border: none !important;
+  font-size: 0.95rem;
+}
+
+/* 상위 메뉴 헤더 */
+.p-sidebar .p-panelmenu .p-panelmenu-header-content {
+  background-color: transparent !important;
+  padding: 0.45rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.p-sidebar .p-panelmenu .p-panelmenu-header:hover .p-panelmenu-header-content {
+  background-color: var(--sidebar-hover-bg) !important;
+  color: #fff !important;
+}
+
+/* 하위 메뉴 */
+.p-sidebar .p-panelmenu .p-menuitem-link {
+  color: var(--sidebar-text) !important;
+  border-radius: 0 4px 4px 0;
+  margin: 0.15rem 0;
+  padding: 0.65rem 1rem 0.65rem 3.25rem; /* ← 들여쓰기 및 세로 여백 확대 */
+  position: relative;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+.p-sidebar .p-panelmenu .p-panelmenu-content .p-menuitem-link:hover {
+  background-color: var(--sidebar-hover-bg) !important;
+  color: #fff !important;
+}
+
+/* 하위 메뉴 중첩 depth */
+.p-sidebar .p-panelmenu .p-panelmenu-content .p-panelmenu-content .p-menuitem-link {
+  padding-left: 3.75rem !important;
+}
+
+/* ACTIVE 상태 (li.menu-active 또는 a.menu-active 모두 지원) */
+.p-sidebar .p-panelmenu .p-menuitem.menu-active > .p-menuitem-link,
+.p-sidebar .p-panelmenu .p-menuitem.p-highlight > .p-menuitem-link,
+.p-sidebar .p-panelmenu a.menu-active {
+  background-color: var(--sidebar-active-bg) !important;
+  color: var(--sidebar-highlight) !important;
+  font-weight: 700;
+  position: relative;
+}
+
+/* 왼쪽 보라 포인트 바 */
+.p-sidebar .p-panelmenu .p-menuitem.menu-active > .p-menuitem-link::before,
+.p-sidebar .p-panelmenu .p-menuitem.p-highlight > .p-menuitem-link::before,
+.p-sidebar .p-panelmenu a.menu-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--sidebar-highlight);
+  border-radius: 0 3px 3px 0;
+}
+
+/* 아이콘 및 토글 */
+.p-sidebar .p-panelmenu .pi,
+.p-sidebar .p-panelmenu .p-menuitem-icon,
+.p-sidebar .p-panelmenu .p-toggle-icon {
+  color: var(--sidebar-icon) !important;
+  transition: color 0.2s;
+}
+
+.p-sidebar .p-panelmenu .p-menuitem.menu-active .p-menuitem-icon,
+.p-sidebar .p-panelmenu .p-menuitem.p-highlight .p-menuitem-icon,
+.p-sidebar .p-panelmenu a.menu-active .p-menuitem-icon {
+  color: var(--sidebar-highlight) !important;
+}
+
+/* hover 시 아이콘 색상 변경 */
+.p-sidebar .p-panelmenu .p-panelmenu-header:hover .pi,
+.p-sidebar .p-panelmenu .p-panelmenu-header:hover .p-toggle-icon {
+  color: #fff !important;
+}
+
+/* hover 상속 */
+.p-sidebar .p-panelmenu .p-panelmenu-panel:hover > .p-panelmenu-header .p-panelmenu-header-content {
+  background-color: var(--sidebar-hover-bg) !important;
+  color: #fff !important;
+}
+
+/* 경계선 */
+.p-sidebar .p-panelmenu .p-panelmenu-panel:not(:last-child) {
+  border-bottom: 1px solid var(--sidebar-divider);
+}
+
+/* inline-style override */
+body .p-sidebar .p-panelmenu .p-panelmenu-header,
+body .p-sidebar .p-panelmenu .p-panelmenu-content,
+body .p-sidebar .p-panelmenu .p-menuitem-link,
+body .p-sidebar .p-panelmenu .p-panelmenu-header-content {
+  background-color: transparent !important;
+  color: var(--sidebar-text) !important;
+  border: none !important;
+}

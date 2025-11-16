@@ -1,0 +1,199 @@
+/* src/scss/layout.scss
+   CoreUI의 'Static' (Push) 레이아웃을 PrimeReact로 구현
+*/
+
+// --- 변수 ---
+$sidebar-width: 256px; // CoreUI 사이드바 너비
+$header-height: 4rem; // 헤더 높이
+$transition-speed: 0.2s;
+
+body {
+  background-color: var(--surface-ground);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  margin: 0;
+  // CoreUI와 달리 스크롤바를 항상 표시
+  overflow-y: auto !important;
+}
+
+/* 1. 사이드바 (app-sidebar)
+   - 화면 전체 높이를 차지하고 왼쪽에 고정됩니다.
+*/
+.app-sidebar.p-sidebar {
+  position: fixed !important;
+  top: 0; // 화면 맨 위
+  left: 0;
+  height: 100vh !important; // 전체 높이
+  width: $sidebar-width !important;
+  z-index: 999;
+  transition: transform $transition-speed;
+
+  // CoreUI처럼 보이도록 '도킹' 스타일 적용
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  border-right: 1px solid var(--surface-border);
+
+  .p-sidebar-content {
+    padding: 0;
+  }
+  .p-sidebar-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--surface-border);
+    height: $header-height; // 헤더 높이와 일치
+    display: flex;
+    align-items: center;
+  }
+
+  // PanelMenu 스타일 (CoreUI Nav 처럼 보이게)
+  .p-panelmenu {
+    .p-panelmenu-panel {
+      margin-bottom: 0;
+    }
+    .p-panelmenu-header > a {
+      border: none;
+      background: none;
+      padding: 1rem 1.5rem;
+      font-weight: 500;
+      color: var(--text-color-secondary);
+      &:hover {
+        background: var(--surface-hover);
+        color: var(--text-color);
+      }
+    }
+    .p-panelmenu-header.p-highlight > a {
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+    .p-panelmenu-content {
+      border: none;
+      background: none;
+      padding: 0 0 0.5rem 1.5rem;
+      .p-menuitem-link {
+        padding: 0.75rem 1rem;
+        color: var(--text-color-secondary);
+        border-radius: 6px;
+        &:hover {
+          background: var(--surface-hover);
+          color: var(--text-color);
+        }
+      }
+      .p-menuitem.p-highlight > .p-menuitem-link {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+/* 2. 콘텐츠 래퍼 (app-content-wrapper)
+   - 헤더와 메인 콘텐츠를 감쌉니다.
+   - 사이드바 너비($sidebar-width)만큼 왼쪽 마진을 가집니다.
+*/
+.app-content-wrapper {
+  margin-left: $sidebar-width;
+  padding-top: $header-height; // 고정 헤더를 위한 공간
+  transition: margin-left $transition-speed;
+  min-height: 100vh;
+  background-color: var(--surface-ground);
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* 3. 헤더 (app-header)
+   - 콘텐츠 래퍼 내부에 고정됩니다.
+   - 사이드바 너비($sidebar-width)만큼 왼쪽 여백을 가집니다.
+*/
+.app-header {
+  position: fixed;
+  top: 0;
+  left: $sidebar-width;
+  right: 0;
+  z-index: 1000;
+  height: $header-height;
+  transition: left $transition-speed;
+
+  .p-toolbar {
+    height: 100%;
+  }
+}
+
+/* 4. 메인 콘텐츠 (app-main-content)
+   - "콘텐츠가 너무 가득 차는" 문제를 해결하기 위해 패딩을 줍니다.
+*/
+.app-main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+/* 5. 사이드바 숨김 상태 (데스크탑)
+   - .sidebar-hidden 클래스가 적용되면...
+*/
+.sidebar-hidden {
+  // 사이드바를 왼쪽으로 밀어 숨김
+  .app-sidebar.p-sidebar {
+    transform: translateX(-100%);
+  }
+  // 콘텐츠 래퍼의 왼쪽 마진을 0으로
+  .app-content-wrapper {
+    margin-left: 0;
+  }
+  // 헤더의 왼쪽 여백을 0으로
+  .app-header {
+    left: 0;
+  }
+}
+
+/* 6. 로고 토글 (두 개 아이콘 문제 해결) */
+.app-sidebar {
+  .sidebar-brand-narrow {
+    display: none;
+  }
+  .sidebar-brand-full {
+    display: inline;
+  }
+}
+.sidebar-hidden {
+  .app-sidebar {
+    .sidebar-brand-narrow {
+      display: inline;
+    }
+    .sidebar-brand-full {
+      display: none;
+    }
+  }
+}
+
+/* 7. 모바일 레이아웃 (오버레이 방식) */
+@media (max-width: 991px) {
+  // 모바일에선 콘텐츠/헤더가 항상 꽉 참
+  .app-content-wrapper {
+    margin-left: 0 !important;
+  }
+  .app-header {
+    left: 0 !important;
+  }
+
+  // 사이드바는 PrimeReact의 'visible' prop으로 제어
+  .app-sidebar.p-sidebar {
+    z-index: 1001;
+    transform: none !important;
+  }
+  // 데스크탑 숨김 로직 비활성화
+  .sidebar-hidden {
+    .app-sidebar.p-sidebar {
+      transform: none !important;
+    }
+  }
+  // 모바일에선 항상 전체 로고 표시
+  .app-sidebar {
+    .sidebar-brand-narrow {
+      display: none !important;
+    }
+    .sidebar-brand-full {
+      display: inline !important;
+    }
+  }
+}
