@@ -16,6 +16,7 @@ export class UserGenealogyNodeDto {
     loginId: string;
     depth: number;
     position?: PositionResponseDto | null;
+    lastMonthPerf?: number | null;
   };
 
   @Expose()

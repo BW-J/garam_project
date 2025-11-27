@@ -24,6 +24,8 @@ import { PasswordPolicyGuard } from './auth/guards/password-policy.guard';
 import { BoardModule } from './system/board/board.module';
 import { PromotionModule } from './system/promotion/promotion.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { TypeOrmWinstonLogger } from './logger/typeorm-winston-logger';
+import { createTypeOrmLogger } from './logger/winston-logger';
 
 @Module({
   imports: [
@@ -37,17 +39,28 @@ import { CacheModule } from '@nestjs/cache-manager';
       ttl: 120 * 60 * 1000, // 2시간 (캐시 생명 주기)
       max: 10000, // 최대 항목 수
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'jung2806',
-      database: 'pg_database',
-      autoLoadEntities: true,
-      synchronize: false,
-      logging: true,
-      logger: 'advanced-console',
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        // ConfigService에서 .env 값을 안전하게 읽어옵니다.
+        const logPath = configService.get<string>('LOG_PATH') || './logs';
+
+        // 이 시점에서 logPath는 'C:/dev/logs'가 됩니다.
+        const typeOrmLoggerInstance = createTypeOrmLogger(logPath);
+        return {
+          type: 'postgres',
+          host: 'localhost',
+          port: 5432,
+          username: 'postgres',
+          password: 'jung2806',
+          database: 'pg_database',
+          autoLoadEntities: true,
+          synchronize: false,
+          logging: true,
+          logger: new TypeOrmWinstonLogger(typeOrmLoggerInstance),
+        };
+      },
     }),
     UserModule,
     AuthModule,

@@ -17,6 +17,7 @@ import { plainToInstance } from 'class-transformer';
 import { BaseService } from 'src/core/services/base.service';
 import { AuthorizedRequest } from 'src/types/http';
 import { UserService } from '../user/user.service';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class PositionService extends BaseService<Position> {
@@ -25,8 +26,20 @@ export class PositionService extends BaseService<Position> {
     private readonly positionRepository: Repository<Position>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     super(positionRepository);
+  }
+
+  /**
+   * 직급 코드(SFP, DIRECTOR 등) 캐시를 지우는 헬퍼
+   */
+  private async clearPositionCache(positionCd: string | null) {
+    if (positionCd) {
+      const cacheKey = `pos_id:${positionCd}`;
+      await this.cacheManager.del(cacheKey);
+      this.logger.log(`Cache cleared for key: ${cacheKey}`);
+    }
   }
 
   /**
@@ -60,6 +73,9 @@ export class PositionService extends BaseService<Position> {
   ) {
     await this.validatePosition(dto.positionId, dto.positionCd, dto.positionNm);
     const result = await super.updateForKey('positionId', positionId, dto, req);
+    // 수정 시 캐시 삭제
+    await this.clearPositionCache(result.positionCd);
+    await this.clearPositionCache(dto.positionCd);
     return plainToInstance(PositionResponseDto, result);
   }
 
@@ -93,6 +109,10 @@ export class PositionService extends BaseService<Position> {
     before.isActive = !before.isActive;
     before.updatedBy = req?.user?.sub as number;
     const result = await this.positionRepository.save(before);
+
+    // 토글 시 캐시 삭제
+    await this.clearPositionCache(result.positionCd);
+
     this.logger.debug(
       `The activation status of ${this.positionRepository.metadata.name} ID $${positionId} has been changed. ==> ${before.isActive}`,
     );

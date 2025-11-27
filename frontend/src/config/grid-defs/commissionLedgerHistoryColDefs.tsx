@@ -4,19 +4,13 @@ import type { CommissionLedgerHistory } from 'src/config/types/Commission';
 
 // 숫자(원) 포맷팅
 const currencyBody = (rowData: CommissionLedgerHistory) => {
-  const val = Number(rowData.amount || 0); // 👈 수정됨
+  const val = Number(rowData.amount || 0);
   return val.toLocaleString('ko-KR') + ' 원';
 };
 
-// 날짜 포맷팅
-// const dateBody = (rowData: CommissionLedger) => {
-//   return new Date(rowData.createdAt).toLocaleString('ko-KR');
-// };
-
-// Details (JSON) 툴팁
 const detailsBodyTemplate = (rowData: CommissionLedgerHistory) => {
   if (!rowData.details) return null;
-  const targetId = `details-tooltip-${rowData.ledgerId}`;
+  const targetId = `details-tooltip-${rowData.historyId}`;
 
   return (
     <>

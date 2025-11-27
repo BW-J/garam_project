@@ -82,7 +82,7 @@ export class User extends BaseAuditEntity {
   failCount: number;
 
   @Column({ name: 'password_changed_at', type: 'timestamp', nullable: true })
-  passwordChangedAt?: Date;
+  passwordChangedAt?: Date | null;
 
   @Column({ name: 'last_login_at', type: 'timestamp', nullable: true })
   lastLoginAt?: Date;

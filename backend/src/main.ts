@@ -22,12 +22,11 @@ async function bootstrap() {
 
   const logPath = process.env.LOG_PATH || './logs';
 
-  console.log(`로그 경로 : ${logPath}`);
   const winstonLogger = WinstonModule.createLogger({
     transports: [
       // 1. 콘솔 로그 설정 (기존 NestJS 로그와 유사하게)
       new winston.transports.Console({
-        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        level: process.env.NODE_ENV === 'prod' ? 'info' : 'debug',
         format: winston.format.combine(
           winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
           winston.format.colorize({ all: true }),
@@ -40,22 +39,22 @@ async function bootstrap() {
 
       // 2. 일별 파일 로그 (모든 로그 - info 레벨 이상)
       new winston.transports.DailyRotateFile({
-        level: 'info',
-        filename: `${logPath}/%DATE%/combined.log`, // 👈 [수정] 년/월 단위 폴더 자동 생성을 위해 %DATE% 사용
-        datePattern: 'YYYY-MM', // 👈 [수정] 년/월 단위로 폴더 생성
+        level: 'debug',
+        filename: `${logPath}/%DATE%/combined.log`, // 년/월 단위 폴더 자동 생성을 위해 %DATE% 사용
+        datePattern: 'YYYY-MM', // 년/월 단위로 폴더 생성
         zippedArchive: true,
-        maxSize: '20m', // 👈 20MB 초과 시 파일 분리
-        maxFiles: '12m', // 👈 [수정] 1년 (12개월) 보관
+        maxSize: '20m', // 20MB 초과 시 파일 분리
+        maxFiles: '12m', // 1년 (12개월) 보관
         format: winston.format.combine(
           winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-          winston.format.json(), // 👈 파일 로그는 JSON 형식으로 저장
+          winston.format.json(), // 파일 로그는 JSON 형식으로 저장
         ),
       }),
 
       // 3. 일별 파일 로그 (에러만)
       new winston.transports.DailyRotateFile({
         level: 'error',
-        filename: `${logPath}/%DATE%/error.log`, // 👈 년/월 폴더
+        filename: `${logPath}/%DATE%/error.log`, // 년/월 폴더
         datePattern: 'YYYY-MM',
         zippedArchive: true,
         maxSize: '20m',
@@ -103,7 +102,7 @@ async function bootstrap() {
     }),
   );
 
-  // ✅ 전역 예외 필터
+  // 전역 예외 필터
   app.useGlobalFilters(new HttpExceptionFilter());
 
   const config = new DocumentBuilder()
@@ -116,7 +115,7 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document);
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
-  // ✅ 전역 로깅 인터셉터
+  // 전역 로깅 인터셉터
   app.setGlobalPrefix('api');
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }

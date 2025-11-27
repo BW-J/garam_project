@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react'; // 👈 useCallback 추가
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
@@ -10,12 +10,16 @@ import { ReusableDataTable } from 'src/components/grid/ReusableDataTable';
 import { getUserColumns } from 'src/config/grid-defs/userColDefs';
 import UserFormModal from 'src/views/system/user/UserFormModal';
 import type { User } from 'src/config/types/User';
-import api from 'src/api/axios'; // 👈 [추가] api 임포트
+import api from 'src/api/axios';
+import type { DataTableFilterMeta } from 'primereact/datatable';
 
 export default function UserManagement() {
   const toast = useRef<Toast | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    isActive: { value: true, matchMode: 'equals' },
+  });
 
   const authorizedMenu = useAuthStore((state) => state.authorizedMenu);
   const permissionSet = useMemo(() => {
@@ -174,6 +178,8 @@ export default function UserManagement() {
               filterDisplay="row"
               defaultRows={10}
               scrollHeight="flex"
+              filters={filters}
+              onFilter={(e) => setFilters(e.filters)}
             >
               {userCols}
             </ReusableDataTable>

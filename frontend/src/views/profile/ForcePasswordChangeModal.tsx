@@ -15,13 +15,7 @@ import { PasswordStatus } from 'src/common/constants/password-status';
 // 비밀번호 검증 스키마
 const passwordSchema = z
   .object({
-    password: z
-      .string()
-      .min(8, '비밀번호는 8자 이상이어야 합니다.')
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-        '영문 대/소문자, 숫자, 특수문자(@$!%*?&)를 포함해야 합니다.',
-      ),
+    password: z.string().min(6, '비밀번호는 6자 이상이어야 합니다.'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -139,7 +133,7 @@ export default function ForcePasswordChangeModal() {
         <div className="mb-4 line-height-3">
           {passwordStatus === PasswordStatus.MUST_CHANGE ? (
             <p className="text-red-500 font-bold">
-              최초 로그인 또는 관리자에 의해 비밀번호가 초기화되었습니다.
+              초기 비밀번호를 사용 중이거나, 관리자에 의해 비밀번호 변경이 요구되었습니다.
               <br />
               안전을 위해 새로운 비밀번호로 변경해주세요.
             </p>

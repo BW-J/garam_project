@@ -264,10 +264,8 @@ export class BoardService {
     const encodedFileName = encodeURIComponent(attachment.originalName);
     res.set({
       'Content-Type': attachment.mimeType || 'application/octet-stream',
-      // 👇 [수정] 표준 규격에 맞게 설정 (모던 브라우저는 filename* 우선 사용)
       'Content-Disposition': `attachment; filename="${encodedFileName}"; filename*=UTF-8''${encodedFileName}`,
       'Content-Length': String(attachment.size),
-      // 👇 [추가] 브라우저가 파일명을 확인할 수 있도록 노출
       'Access-Control-Expose-Headers': 'Content-Disposition',
     });
 

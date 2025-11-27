@@ -12,7 +12,6 @@ export class UserClosureService {
   constructor(
     @InjectRepository(UserClosure)
     private readonly closureRepo: Repository<UserClosure>,
-    // 👇 [삭제] User 리포지토리 주입 제거
     // @InjectRepository(User)
     // private readonly userRepo: Repository<User>,
   ) {}
@@ -45,7 +44,6 @@ export class UserClosureService {
 
     // 1-2. 부모가 있는 경우, 부모의 상위 노드 관계(depth > 0)를 상속받아 INSERT
 
-    // 👇 [수정] 부모의 자기 자신(depth=0) 관계는 제외하도록 "AND depth > 0" 추가
     const insertQuery = `
       INSERT INTO tb_user_closure (ancestor_id, descendant_id, depth)
       SELECT 

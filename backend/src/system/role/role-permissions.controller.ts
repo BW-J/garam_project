@@ -9,7 +9,7 @@ import type { AuthorizedRequest } from 'src/types/http';
 type PermissionStateMap = Record<string, string[]>;
 
 @AuditEntity('ROLE_PERMISSIONS')
-@AuditKey('roleNm')
+@AuditKey('roleId')
 @Controller('system/role-permissions')
 export class RolePermissionsController {
   constructor(

@@ -29,6 +29,8 @@ import { UserClosure } from 'src/core/entities/tb_user_closure.entity';
 import { PositionResponseDto } from '../position/dto/Position-response.dto';
 import { UserPositionHistory } from 'src/core/entities/tb_user_position_history.entity';
 import { Position } from 'src/core/entities/tb_position.entity';
+import dayjs from 'dayjs';
+import { PerformanceData } from 'src/core/entities/tb_performance_data.entity';
 
 @Injectable()
 export class UserService extends BaseService<User> {
@@ -39,6 +41,9 @@ export class UserService extends BaseService<User> {
     private closureRepository: Repository<UserClosure>,
     @InjectRepository(UserPositionHistory)
     private historyRepo: Repository<UserPositionHistory>,
+
+    @InjectRepository(PerformanceData) // [추가] 실적 조회용
+    private perfRepo: Repository<PerformanceData>,
     private readonly userPasswordService: UserPasswordService,
     private readonly configService: ConfigService,
     private readonly userClosureService: UserClosureService,
@@ -188,6 +193,7 @@ export class UserService extends BaseService<User> {
     }
 
     const originalPositionId = beforeUser.positionId;
+    const updaterId = req?.user?.sub;
 
     // 5. 트랜잭션 시작
     const updatedUserResult = await this.userRepository.manager.transaction(
@@ -201,7 +207,12 @@ export class UserService extends BaseService<User> {
         // 비밀번호 변경 시 해싱 및 변경일자 수정
         if (plainPassword) {
           updateData.password = await bcrypt.hash(plainPassword, 10);
-          updateData.passwordChangedAt = new Date();
+
+          if (updaterId && updaterId !== userId) {
+            updateData.passwordChangedAt = null;
+          } else {
+            updateData.passwordChangedAt = new Date();
+          }
         } else {
           delete updateData.password;
         }
@@ -383,58 +394,51 @@ export class UserService extends BaseService<User> {
 
     type TreeNode = UserGenealogyNodeDto;
 
-    // 루트 노드 생성 (Depth 0)
-    const rootNode: TreeNode = {
-      key: String(rootUser.userId),
-      expanded: true,
-      data: {
-        userId: rootUser.userId,
-        userNm: rootUser.userNm,
-        loginId: rootUser.loginId,
-        depth: 0,
-        position: plainToInstance(PositionResponseDto, rootUser.position),
-      },
-      children: [],
-    };
-
-    // 1-1. [수정] maxDepth가 0이면 본인 노드만 반환 (대시보드용)
-    if (maxDepth === 0) {
-      return [rootNode];
-    }
-
     // 1-2. [수정] maxDepth가 1 이상이면 하위 노드 조회 (모달용)
     const descendants = await this.closureRepository
       .createQueryBuilder('closure')
       .select(['closure.descendantId AS "userId"', 'closure.depth AS "depth"'])
       .where('closure.ancestorId = :currentUserId', { currentUserId })
-      .andWhere('closure.depth > 0') // 자기 자신(depth 0) 제외
+      .andWhere('closure.depth >= 0') // 자기 자신 포함
       .andWhere('closure.depth <= :maxDepth', { maxDepth })
       .getRawMany<{ userId: number; depth: number }>();
 
-    if (descendants.length === 0) {
-      return [rootNode]; // 하위가 없으면 루트 노드만 반환
-    }
-
-    const descendantIds = descendants.map((d) => d.userId);
+    // const descendantIds = descendants.map((d) => d.userId);
+    // const depthMap = new Map(descendants.map((d) => [d.userId, d.depth]));
+    const allUserIds = descendants.map((d) => d.userId);
     const depthMap = new Map(descendants.map((d) => [d.userId, d.depth]));
 
     // 2. 하위 노드 사용자들의 상세 정보
     const users = await this.userRepository.find({
       where: {
-        userId: In(descendantIds),
+        userId: In(allUserIds),
         deletedAt: IsNull(),
       },
       relations: ['position'],
       select: ['userId', 'userNm', 'loginId', 'recommenderId', 'position'],
     });
 
+    // 2-1. 전월 실적 일괄 조회
+    const lastMonth = dayjs().subtract(1, 'month').format('YYYY-MM');
+    const performances = await this.perfRepo
+      .createQueryBuilder('perf')
+      .select(['perf.userId', 'perf.settlementAmount']) // 정산금액 기준
+      .where('perf.userId IN (:...allUserIds)', { allUserIds })
+      .andWhere('perf.yearMonth = :lastMonth', { lastMonth })
+      .getMany();
+
+    const perfMap = new Map(
+      performances.map((p) => [p.userId, Number(p.settlementAmount)]),
+    );
+
     // 3. 트리 재구성
     const map = new Map<number, TreeNode>();
-    map.set(rootNode.data.userId, rootNode); // 맵에 루트 노드 추가
 
     // Map에 모든 하위 노드 생성
     for (const user of users) {
       const depth = depthMap.get(user.userId) || 0;
+      const perf = perfMap.get(user.userId) || 0;
+
       const node: TreeNode = {
         key: String(user.userId),
         expanded: true,
@@ -444,16 +448,23 @@ export class UserService extends BaseService<User> {
           loginId: user.loginId,
           depth: depth,
           position: plainToInstance(PositionResponseDto, user.position),
+          lastMonthPerf: perf,
         },
         children: [],
       };
       map.set(user.userId, node);
     }
 
+    let rootNode: TreeNode | null = null;
+
     // 부모-자식 관계 연결
     for (const user of users) {
       const node = map.get(user.userId);
       if (!node) continue;
+
+      if (user.userId === currentUserId) {
+        rootNode = node; // 루트 노드 찾음
+      }
 
       // 부모가 map 안에 있는 경우 (루트 또는 다른 하위 노드)
       if (user.recommenderId && map.has(user.recommenderId)) {
@@ -462,7 +473,7 @@ export class UserService extends BaseService<User> {
       // (그 외: 부모가 10단계를 벗어났거나, 삭제된 경우 -> 고아 노드 -> 무시)
     }
 
-    return [rootNode]; // 항상 루트 노드를 포함하는 배열 반환
+    return rootNode ? [rootNode] : []; // 항상 루트 노드를 포함하는 배열 반환
   }
 
   /**

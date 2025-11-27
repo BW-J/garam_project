@@ -251,3 +251,29 @@
     display: none !important;
   }
 }
+
+.genealogy-node-wrapper {
+  padding: 8px;
+  border-radius: 10px;
+}
+
+/* 내부 box는 흰색 유지 */
+.genealogy-node-wrapper .inner-box {
+  background: white;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+/* perf 상태 색 */
+.perf-good {
+  background: #e7f3ff; /* 연한 파랑 */
+}
+
+.perf-bad {
+  background: #ffe7e7; /* 연한 빨강 */
+}
+
+.header-right .p-column-header-content {
+  justify-content: flex-end !important;
+}

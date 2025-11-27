@@ -11,7 +11,7 @@ interface CommissionDetailModalProps {
   visible: boolean;
   onHide: () => void;
   summaryData: CommissionSummary | null;
-  mode: 'MANAGE' | 'MY'; // 👈 [신규] 모드 전달받음
+  mode: 'MANAGE' | 'MY';
   commissionType: string;
   title: string;
 }
@@ -20,7 +20,7 @@ export default function CommissionDetailModal({
   visible,
   onHide,
   summaryData,
-  mode, // 👈 destructuring
+  mode,
   commissionType,
   title,
 }: CommissionDetailModalProps) {
@@ -28,8 +28,6 @@ export default function CommissionDetailModal({
   const [rows, setRows] = useState<CommissionLedgerHistory[]>([]);
 
   useEffect(() => {
-    console.log(`visible = ${visible}`);
-    console.log(`summaryData = ${summaryData}`);
     if (visible && summaryData) {
       loadDetails();
     } else {
@@ -41,7 +39,6 @@ export default function CommissionDetailModal({
     if (!summaryData) return;
     setLoading(true);
     try {
-      // 👇 [수정] 전달받은 mode를 기준으로 엔드포인트 결정
       const baseUrl =
         mode === 'MANAGE' ? '/system/commission/manage/history' : '/system/commission/my/history';
 

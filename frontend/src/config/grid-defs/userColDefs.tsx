@@ -1,6 +1,6 @@
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
-import { Tag } from 'primereact/tag'; // 👈 [추가] Tag 임포트
+import { Tag } from 'primereact/tag';
 import type { User } from 'src/config/types/User';
 import type { WithCrud } from 'src/config/types/GridTypes';
 import { booleanFilterTemplate } from 'src/utils/gridTemplates';
@@ -10,12 +10,11 @@ type UserRow = WithCrud<User>;
 
 interface UserColumnProps {
   onEdit: (user: UserRow) => void;
-  onDelete: (user: UserRow) => void; // 👈 Soft Delete
-  onRestore: (user: UserRow) => void; // 👈 Restore
+  onDelete: (user: UserRow) => void;
+  onRestore: (user: UserRow) => void;
   permissions?: PermissionSet;
 }
 
-// 👇 [수정] '활성/비활성' 표시용
 const activeBody = (rowData: UserRow) => {
   return rowData.isActive ? (
     <Tag severity="success" value="활성" />
@@ -24,7 +23,6 @@ const activeBody = (rowData: UserRow) => {
   );
 };
 
-// 👇 [신규] '삭제 여부' 표시용
 const deletedBody = (rowData: UserRow) => {
   return rowData.deletedAt ? <Tag severity="danger" value="삭제됨" /> : '';
 };
@@ -46,11 +44,10 @@ export const getUserColumns = ({ onEdit, onDelete, onRestore, permissions }: Use
             className="p-button-sm p-button-secondary"
             onClick={() => onEdit(rowData)}
             text
-            disabled={!!rowData.deletedAt} // 👈 [수정] 삭제된 사용자는 수정 불가
+            disabled={!!rowData.deletedAt}
           />
         )}
 
-        {/* 👇 [수정] deletedAt 값에 따라 삭제 또는 복구 버튼 표시 */}
         {canDelete && !rowData.deletedAt && (
           // 삭제되지 않았을 때 -> 삭제 버튼
           <Button
@@ -176,15 +173,15 @@ export const getUserColumns = ({ onEdit, onDelete, onRestore, permissions }: Use
     <Column
       key="isActive"
       field="isActive"
-      header="활성화 여부" // 👈 [수정] 헤더명
-      body={activeBody} // 👈 [수정] body 템플릿
+      header="활성화 여부"
+      body={activeBody}
       filterMatchMode="equals"
       style={{ minWidth: '6rem', textAlign: 'center' }}
       filter
       showFilterMenu={false}
+      showClearButton={false}
       filterElement={booleanFilterTemplate} // (주의: 이 필터는 '활성/비활성'만 필터링)
     />,
-    // 👇 [신규] '삭제 여부' 컬럼 추가
     <Column
       key="deletedAt"
       field="deletedAt"

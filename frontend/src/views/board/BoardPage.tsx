@@ -18,7 +18,6 @@ const BoardPage = () => {
     return <Navigate to="/404" replace />;
   }
 
-  // 👇 메뉴 정보에서 필요한 값 추출
   const {
     menuCd, // 예: 'NOTICE' (이것을 boardType으로 사용)
     name, // 예: '공지사항' (보드 제목으로 사용)

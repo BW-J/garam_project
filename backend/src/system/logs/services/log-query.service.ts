@@ -31,9 +31,11 @@ export class LogQueryService {
     if (filters.startDate)
       qb.andWhere('a.createdAt >= :start', { start: filters.startDate });
     if (filters.endDate)
-      qb.andWhere('a.createdAt <= :end', { end: filters.endDate });
+      qb.andWhere('a.createdAt <= :end', {
+        end: `${filters.endDate} 23:59:59`,
+      });
 
-    qb.orderBy('a.createdAt', 'DESC').limit(filters.limit ?? 100);
+    qb.orderBy('a.createdAt', 'DESC');
 
     return qb.getMany();
   }
@@ -56,9 +58,11 @@ export class LogQueryService {
     if (filters.startDate)
       qb.andWhere('l.createdAt >= :start', { start: filters.startDate });
     if (filters.endDate)
-      qb.andWhere('l.createdAt <= :end', { end: filters.endDate });
+      qb.andWhere('l.createdAt <= :end', {
+        end: `${filters.endDate} 23:59:59`,
+      });
 
-    qb.orderBy('l.createdAt', 'DESC').limit(filters.limit ?? 100);
+    qb.orderBy('l.createdAt', 'DESC');
 
     return qb.getMany();
   }
@@ -100,6 +104,6 @@ export class LogQueryService {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
 
-    return unified.slice(0, filters.limit ?? 200);
+    return unified;
   }
 }

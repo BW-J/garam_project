@@ -22,9 +22,8 @@ export default function MyMonthlySummary() {
     if (!month) return;
     setLoading(true);
     try {
-      // 👇 [수정] 신규 통합 API 호출 (권한 체크는 백엔드가 알아서 함)
       const res = await api.get('/system/commission/dashboard', {
-        params: { yearMonth: month },
+        params: { yearMonth: month, commissionType: 'RECRUITMENT' },
       });
       setSummary({
         settlementTotal: res.data.settlementTotal,
@@ -51,10 +50,10 @@ export default function MyMonthlySummary() {
     if (loading) {
       return (
         <div className="grid formgrid mt-2">
-          <div className="col-12 lg:col-6">
+          <div className="col-12">
             <Skeleton height="4rem" />
           </div>
-          <div className="col-12 lg:col-6">
+          <div className="col-12 mt-2">
             <Skeleton height="4rem" />
           </div>
         </div>
@@ -62,10 +61,9 @@ export default function MyMonthlySummary() {
     }
     return (
       <div className="grid formgrid mt-2">
-        <div className="col-12 lg:col-6">
+        <div className="col-12 lg:col-12 p-3">
           <Card className="h-full">
             <span className="block text-500 font-medium mb-3">
-              {/* 👇 라벨 분기 */}
               {selectedMonth} 정산금액 {isSuperAdmin ? '(전체 실적)' : '(본인 실적)'}
             </span>
             <div className="text-900 font-medium text-xl">
@@ -73,10 +71,10 @@ export default function MyMonthlySummary() {
             </div>
           </Card>
         </div>
-        <div className="col-12 lg:col-6">
+        <div className="col-12 lg:col-12 p-3">
           <Card className="h-full">
             <span className="block text-500 font-medium mb-3">
-              {selectedMonth} 수당 합계 {isSuperAdmin ? '(전체 지급)' : '(본인 수령)'}
+              {selectedMonth} 증원 수수료 합계 {isSuperAdmin ? '(전체 지급)' : '(본인 수령)'}
             </span>
             <div className="text-900 font-medium text-xl">
               {formatCurrency(summary.commissionTotal)}
@@ -89,7 +87,7 @@ export default function MyMonthlySummary() {
 
   return (
     // ... (Calendar 부분 동일)
-    <Card title="월별 실적/수당 요약" className="mb-4">
+    <Card title="월별 실적/수당 요약" className="card-flex-full h-full">
       <Calendar
         value={selectedMonth ? new Date(selectedMonth) : null}
         onChange={onMonthChange}

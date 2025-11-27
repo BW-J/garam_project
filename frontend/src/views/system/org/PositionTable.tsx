@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Card } from 'primereact/card';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Toast } from 'primereact/toast';
@@ -9,13 +9,17 @@ import { getPositionColumns } from 'src/config/grid-defs/positionColDefs';
 import { useAuthStore } from 'src/store/authStore';
 import { getCurrentMenuPermission } from 'src/utils/permissionUtils';
 import { Button } from 'primereact/button';
+import type { DataTableFilterMeta } from 'primereact/datatable';
 
 export default function PositionTable() {
   const toast = useRef<Toast | null>(null);
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    isActive: { value: true, matchMode: 'equals' },
+  });
 
   const authorizedMenu = useAuthStore((state) => state.authorizedMenu);
   const permissionSet = useMemo(() => {
-    // ❗️ '부서/직급관리' 메뉴의 권한을 사용합니다.
+    // '부서/직급관리' 메뉴의 권한을 사용합니다.
     return getCurrentMenuPermission(authorizedMenu);
   }, [authorizedMenu]);
 
@@ -98,6 +102,8 @@ export default function PositionTable() {
             usePagination
             defaultRows={10}
             scrollHeight="flex"
+            filters={filters}
+            onFilter={(e) => setFilters(e.filters)}
           >
             {posCols}
           </ReusableDataTable>

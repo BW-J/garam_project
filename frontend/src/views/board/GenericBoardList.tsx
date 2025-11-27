@@ -69,7 +69,7 @@ export default function GenericBoardList({
     } finally {
       setLoading(false);
     }
-  }, [boardType, lazyParams, keyword, searchType]);
+  }, [boardType, lazyParams]);
 
   useEffect(() => {
     loadPosts();

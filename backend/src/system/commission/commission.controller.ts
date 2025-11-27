@@ -24,10 +24,9 @@ import { CalculateCommissionDto } from './dto/calculate-commission.dto';
 import { CommissionQueryDto } from './dto/query-commission.dto';
 import type { AuthorizedRequest } from 'src/types/http';
 import { AdjustCommissionDto } from './dto/adjust-commission.dto';
-
 @Controller('system/commission')
 @AuditEntity('PERFORMANCE_DATA') // 감사 로그용
-@AuditKey('userNm')
+@AuditKey('id')
 export class CommissionController {
   constructor(private readonly commissionService: CommissionService) {}
 
@@ -113,6 +112,7 @@ export class CommissionController {
       query.yearMonth,
       query.userId,
       query.commissionType,
+      query.year,
     );
   }
 
@@ -158,7 +158,7 @@ export class CommissionController {
 
   /** (사용자용) 승진 축하금 상세내역 조회 */
   @Get('my/promotion-bonus')
-  @Permission('MY_BONUS', 'VIEW')
+  @Permission('MY_PROMOTION_BONUS', 'VIEW')
   @Activity('승진 축하금 조회')
   async getMyPromotionBonusHistory(
     @Query() query: CommissionQueryDto,
@@ -183,6 +183,7 @@ export class CommissionController {
       query.yearMonth,
       user.sub,
       query.commissionType,
+      query.year,
     );
   }
 
@@ -197,6 +198,7 @@ export class CommissionController {
   @Activity('대시보드 요약 조회')
   async getDashboardSummary(
     @Query('yearMonth') yearMonth: string,
+    @Query('commissionType') commissionType: string,
     @CurrentUser() user: any,
   ) {
     if (!yearMonth) {
@@ -204,6 +206,10 @@ export class CommissionController {
       // 여기서는 편의상 에러 대신 빈 값 또는 현재 월 처리 등을 고려 가능
       throw new BadRequestException('yearMonth is required');
     }
-    return this.commissionService.getDashboardSummary(yearMonth, user);
+    return this.commissionService.getDashboardSummary(
+      yearMonth,
+      user,
+      commissionType,
+    );
   }
 }

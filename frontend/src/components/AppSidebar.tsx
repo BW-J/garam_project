@@ -61,9 +61,9 @@ const AppSidebar = ({ visible, onClose, isMobile }: AppSidebarProps) => {
     <Sidebar
       visible={visible}
       onHide={onClose}
-      modal={isMobile} // ✅ 모바일일 때만 모달(배경 어둡게)
-      dismissable={isMobile} // ✅ 모바일일 때만 바깥 클릭 시 닫기
-      className="app-sidebar" // .app-sidebar 클래스 적용
+      modal={isMobile}
+      dismissable={isMobile}
+      className="app-sidebar"
       header={CustomHeader}
       showCloseIcon={isMobile}
     >

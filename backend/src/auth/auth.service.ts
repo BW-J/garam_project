@@ -1,11 +1,8 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import * as crypto from 'crypto';
-import * as fs from 'fs';
 import { randomUUID } from 'crypto';
 import { UserService } from 'src/system/user/user.service';
-import { UserResponseDto } from 'src/system/user/dto/user-response.dto';
 import { LoginLogService } from 'src/system/logs/services/login-log.service';
 import { SessionService } from 'src/system/session/session.service';
 import { RolePermissionsService } from 'src/system/role/role-permission.service';

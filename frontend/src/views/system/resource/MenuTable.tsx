@@ -44,10 +44,10 @@ export default function MenuTable() {
     addChildNode,
     totalNodeCount,
   } = useTreeTable<Menu>({
-    apiBaseUrl: '/system/menu', // 👈 [수정] 백엔드 MenuController
-    idField: 'menuId', // 👈 [수정] Menu PK
-    parentIdField: 'parentMenuId', // 👈 [수정] Menu Parent FK
-    parentObjectField: 'parent', // 👈 [수정]
+    apiBaseUrl: '/system/menu',
+    idField: 'menuId',
+    parentIdField: 'parentMenuId',
+    parentObjectField: 'parent',
     toastRef,
     newRowDefaults: {
       menuNm: '',
@@ -98,7 +98,7 @@ export default function MenuTable() {
         deleteNode,
         onAddChild: handleAddChild,
         permissions: permissionSet,
-        menuTreeNodes: nodes, // 👈 [수정]
+        menuTreeNodes: nodes,
         filters: filters,
         onFilter: onFilter,
         onAddRoot: permissionSet.canCreate ? addRootNode : undefined,
@@ -113,7 +113,7 @@ export default function MenuTable() {
       deleteNode,
       handleAddChild,
       permissionSet,
-      nodes, // 👈 [수정]
+      nodes,
       filters,
       onFilter,
       addRootNode,

@@ -12,7 +12,7 @@ import { CommissionLedger } from './tb_commission_ledger.entity';
 
 @Entity({ name: 'tb_commission_ledger_history' })
 @Index(['ledgerId'])
-@Index(['userId', 'yearMonth', 'commissionType']) // 👈 [신규] 복합 인덱스
+@Index(['userId', 'yearMonth', 'commissionType'])
 export class CommissionLedgerHistory extends BaseAuditEntity {
   @PrimaryGeneratedColumn({ name: 'history_id' })
   historyId: number;
@@ -26,7 +26,6 @@ export class CommissionLedgerHistory extends BaseAuditEntity {
   @JoinColumn({ name: 'ledger_id' })
   ledger: CommissionLedger;
 
-  // 👇 [신규] 빠른 조회를 위한 중복 필드 (Type 에러 해결용)
   @Column({ name: 'user_id' })
   userId: number;
 
@@ -49,7 +48,7 @@ export class CommissionLedgerHistory extends BaseAuditEntity {
 
   // 관계 정의 (조회 시 사용)
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' }) // 👈 userId 기준
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => User)

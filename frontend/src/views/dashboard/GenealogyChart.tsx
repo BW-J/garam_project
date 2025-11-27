@@ -14,23 +14,56 @@ interface GenealogyNode {
     loginId: string;
     depth: number;
     position?: { positionNm: string } | null;
+    lastMonthPerf?: number; // [추가]
   };
   children: GenealogyNode[];
   label?: string;
 }
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('ko-KR', {
+    style: 'currency',
+    currency: 'KRW',
+    maximumFractionDigits: 0,
+  }).format(value);
+};
 
 // OrganizationChart의 노드 템플릿
 const nodeTemplate = (node: OrganizationChartNodeData) => {
   if (!node) return null;
   const genealogyNode = node as GenealogyNode;
   const data = genealogyNode.data;
+  const perf = data.lastMonthPerf || 0;
+  const nodeId = `json-node-${Math.random().toString(36).substring(2, 9)}`;
+
+  const bgColor = perf > 0 ? '#E3F2FD' : perf < 0 ? '#FFE6E9' : '#FAFAFA';
+
+  // --- 중요: 렌더링 후 바깥 박스에 색상 적용 ---
+  setTimeout(() => {
+    const el = document.querySelector(`[data-nodekey="${nodeId}"]`);
+    if (el) {
+      const wrapper = el.closest('.p-organizationchart-node-content') as HTMLElement;
+      if (wrapper) {
+        wrapper.style.backgroundColor = bgColor;
+        // wrapper.style.border = '1px solid #ddd';
+        wrapper.style.borderRadius = '12px';
+        // wrapper.style.padding = '12px';
+      }
+    }
+  });
 
   return (
-    <div className="p-1 border-round surface-border surface-card genealogy-node">
+    <div data-nodekey={nodeId}>
       <div className="font-bold text-base">{data.userNm}</div>
-      <div className="text-color-secondary text-xs mb-1">({data.loginId})</div>
-      <div className="text-xs p-tag p-tag-rounded p-tag-info">
-        {data.position?.positionNm || '직급 없음'}
+      <div className="text-color-secondary text-xs mb-2">({data.loginId})</div>
+
+      <div className="flex flex-column gap-1 align-items-center">
+        <div className="text-xs p-tag p-tag-rounded p-tag-info">
+          {data.position?.positionNm || '직급없음'}
+        </div>
+
+        {/* [추가] 전월 실적 표시 */}
+        <div>{formatCurrency(perf)}</div>
       </div>
       {/* "나"(depth 0)일 때는 depth 표시 안 함 */}
       {data.depth > 0 && (
@@ -55,7 +88,7 @@ export default function GenealogyChart() {
   const loadDashboardData = useCallback(() => {
     setLoadingDashboard(true);
     api
-      .get('/system/users/me/genealogy', { params: { depth: 1 } }) // 👈 [수정] depth=1
+      .get('/system/users/me/genealogy', { params: { depth: 1 } })
       .then((res) => {
         setDashboardNodes(res.data);
       })
@@ -67,7 +100,7 @@ export default function GenealogyChart() {
   const loadFullGenealogyData = useCallback(() => {
     setLoadingFull(true);
     api
-      .get('/system/users/me/genealogy', { params: { depth: 10 } }) // 👈 [수정] depth=10
+      .get('/system/users/me/genealogy', { params: { depth: 10 } })
       .then((res) => {
         setFullNodes(res.data);
       })
@@ -97,7 +130,7 @@ export default function GenealogyChart() {
       <span className="p-card-title">계보도</span>
       <div className="flex gap-2">
         <Button
-          label="전체 계보도 보기"
+          label="전체 보기"
           icon="pi pi-sitemap"
           onClick={onShowFullGenealogy}
           className="p-button-sm p-button-secondary"

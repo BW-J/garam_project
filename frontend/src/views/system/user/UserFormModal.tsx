@@ -20,6 +20,9 @@ import { JSEncrypt } from 'jsencrypt';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { refinedUserFormSchema, type UserFormData } from 'src/config/schemas/userFormSchema';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+
+const RESET_PASSWORD_VALUE = '123456';
 
 /**
  * 모달 Props 정의
@@ -117,6 +120,55 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
     }
   }, [userToEdit, visible, publicKey, reset]);
 
+  const handleResetPassword = () => {
+    confirmDialog({
+      message: `비밀번호를 '${RESET_PASSWORD_VALUE}'로 초기화 하시겠습니까?`,
+      header: '비밀번호 초기화',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: '초기화',
+      rejectLabel: '취소',
+      accept: async () => {
+        if (!userToEdit || !userToEdit.userId) return;
+        if (!publicKey) {
+          toast.current?.show({ severity: 'error', summary: '오류', detail: '암호화 키 오류' });
+          return;
+        }
+
+        try {
+          // 1. 암호화
+          const encrypt = new JSEncrypt();
+          encrypt.setPublicKey(publicKey);
+          const encryptedPassword = encrypt.encrypt(RESET_PASSWORD_VALUE);
+
+          if (!encryptedPassword) {
+            throw new Error('Encryption failed');
+          }
+
+          // 2. 비밀번호만 업데이트하는 API 호출 (기존 update API 재활용)
+          //    다른 필드는 보내지 않고 password만 보냅니다.
+          await api.patch(`/system/users/${userToEdit.userId}`, {
+            password: encryptedPassword,
+          });
+
+          toast.current?.show({
+            severity: 'success',
+            summary: '완료',
+            detail: `비밀번호가 '${RESET_PASSWORD_VALUE}'로 초기화되었습니다.`,
+          });
+          // 모달 닫기
+          onHide();
+        } catch (err: any) {
+          console.error(err);
+          toast.current?.show({
+            severity: 'error',
+            summary: '실패',
+            detail: err.response?.data?.message || '초기화 실패',
+          });
+        }
+      },
+    });
+  };
+
   // 5. 저장 (Submit) 핸들러 (암호화 로직 포함)
   const onSubmit = async (data: UserFormData) => {
     try {
@@ -170,8 +222,8 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
       <Button
         label="저장"
         icon="pi pi-check"
-        onClick={handleSubmit(onSubmit)} // 👈 RHF의 handleSubmit 연결
-        loading={isSubmitting} // 👈 RHF의 isSubmitting 사용
+        onClick={handleSubmit(onSubmit)}
+        loading={isSubmitting}
       />
     </>
   );
@@ -185,6 +237,7 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
   return (
     <>
       <Toast ref={toast} />
+      <ConfirmDialog />
       <Dialog
         visible={visible}
         style={{ width: '40rem' }}
@@ -268,21 +321,35 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
 
             <div className="field col-12">
               <label htmlFor="password">{isNew ? '비밀번호 *' : '비밀번호 변경 (선택)'}</label>
-              <Controller
-                name="password"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Password
-                    id={field.name}
-                    {...field}
-                    value={field.value || ''}
-                    feedback={false}
-                    toggleMask
-                    placeholder={isNew ? '8자 이상 (필수)' : '8자 이상 (변경 시 입력)'}
-                    className={classNames({ 'p-invalid': fieldState.error })}
+              <div className="p-inputgroup">
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Password
+                      id={field.name}
+                      {...field}
+                      value={field.value || ''}
+                      feedback={false}
+                      toggleMask
+                      placeholder={isNew ? '6자 이상 (필수)' : '(변경 시 입력)'}
+                      className={classNames('w-full', { 'p-invalid': fieldState.error })}
+                      inputClassName="w-full"
+                    />
+                  )}
+                />
+                {/* 수정 모드일 때만 초기화 버튼 표시 */}
+                {!isNew && (
+                  <Button
+                    type="button"
+                    // label="초기화"
+                    // className="p-button-warning"
+                    icon="pi pi-refresh"
+                    tooltip="비밀번호 초기화"
+                    onClick={handleResetPassword}
                   />
                 )}
-              />
+              </div>
               {errors.password && <small className="p-error">{errors.password.message}</small>}
             </div>
 

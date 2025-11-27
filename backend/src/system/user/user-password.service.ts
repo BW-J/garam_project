@@ -33,7 +33,7 @@ export class UserPasswordService {
       await this.validatePasswordReuse(manager, userId, plainPassword);
     }
 
-    return plainPassword; // 💡 검증이 통과된 평문 반환
+    return plainPassword;
   }
 
   /**

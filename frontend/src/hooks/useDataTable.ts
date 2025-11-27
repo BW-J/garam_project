@@ -4,7 +4,7 @@ import api from 'src/api/axios';
 import type { Toast } from 'primereact/toast';
 import type {
   DataTableRowEditCompleteEvent,
-  DataTableRowEditEvent, // 👈 [수정] 올바른 이벤트 타입
+  DataTableRowEditEvent,
   DataTableEditingRows,
 } from 'primereact/datatable';
 
@@ -32,18 +32,21 @@ export const useDataTable = <T extends { [key: string]: any }>({
   const [globalFilter, setGlobalFilter] = useState('');
 
   // ... (loadRows, onRowEditComplete 함수는 동일)
-  const loadRows = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.get<T[]>(apiBaseUrl);
-      setRows(data.map((item) => ({ ...item })));
-    } catch (e) {
-      console.error('데이터 로드 실패', e);
-      toast.current?.show({ severity: 'error', summary: 'Error', detail: '데이터 조회 실패' });
-    } finally {
-      setLoading(false);
-    }
-  }, [apiBaseUrl, toast]);
+  const loadRows = useCallback(
+    async (params?: any) => {
+      setLoading(true);
+      try {
+        const { data } = await api.get<T[]>(apiBaseUrl, { params });
+        setRows(data.map((item) => ({ ...item })));
+      } catch (e) {
+        console.error('데이터 로드 실패', e);
+        toast.current?.show({ severity: 'error', summary: 'Error', detail: '데이터 조회 실패' });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [apiBaseUrl, toast],
+  );
 
   const onRowEditComplete = useCallback(
     async (e: DataTableRowEditCompleteEvent) => {
@@ -75,7 +78,6 @@ export const useDataTable = <T extends { [key: string]: any }>({
   );
 
   /** 3. 편집 상태 변경 (Cancel) */
-  // 🔽 [수정] 이벤트 타입을 DataTableRowEditEvent로 변경
   const onRowEditChange = useCallback(
     (e: DataTableRowEditEvent) => {
       const newEditingRows = e.data as DataTableEditingRows;

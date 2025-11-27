@@ -31,7 +31,9 @@ export function useTreeTable<T extends Record<string, any>>(params: UseTreeTable
   const [loading, setLoading] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
   const [totalNodeCount, setTotalNodeCount] = useState(0);
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, any>>({
+    isActive: { value: true, matchMode: 'equals' },
+  });
 
   /** [수정] 필터 상태를 업데이트하는 핸들러 */
   const onFilter = useCallback((filters: TreeTableFilterMeta) => {

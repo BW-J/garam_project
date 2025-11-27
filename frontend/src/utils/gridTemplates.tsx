@@ -112,7 +112,7 @@ export const datatableTextEditor = (options: ColumnEditorOptions) => (
 export const datatableNumberEditor = (options: ColumnEditorOptions) => (
   <InputText
     type="number"
-    value={String(options.value ?? 0)} // 👈 String()으로 감싸서 0이 표시되도록 함
+    value={String(options.value ?? 0)}
     onChange={(e) => options.editorCallback!(e.target.valueAsNumber)}
     style={{ width: '100%' }}
   />
@@ -128,7 +128,7 @@ export const datatableBooleanEditor = (options: ColumnEditorOptions) => (
     ]}
     onChange={(e) => options.editorCallback!(e.value)}
     style={{ width: '100%' }}
-    optionValue="value" // 👈 Dropdown이 객체 대신 값(true/false)을 반환하도록 보장
+    optionValue="value"
   />
 );
 /** ------- dataTable용 템플릿 --------- */

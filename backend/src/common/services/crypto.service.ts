@@ -119,7 +119,15 @@ export class CryptoService implements OnModuleInit {
         { key: privateKey, padding: crypto.constants.RSA_PKCS1_PADDING },
         buf,
       );
-      return out.toString('utf8');
+      const decryptedString = out.toString('utf8');
+
+      if (decryptedString.includes('\uFFFD')) {
+        throw new Error(
+          'Decryption resulted in invalid UTF-8, likely key mismatch.',
+        );
+      }
+
+      return decryptedString;
     } catch (error) {
       this.logger.error('Failed to decrypt password.', error.stack);
       throw new BadRequestException(

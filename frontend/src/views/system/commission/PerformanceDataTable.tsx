@@ -128,13 +128,18 @@ export default function PerformanceDataTable() {
       toast.current?.show({
         severity: 'success',
         summary: '계산 완료',
-        detail: `${res.data.count}개의 수당 항목이 생성되었습니다.`,
+        detail: `계산이 완료되었습니다.`,
       });
 
       await loadRows(selectedMonth);
       // (계산 후에는 원장(Ledger) 탭으로 이동 유도)
     } catch (e: any) {
-      toast.current?.show({ severity: 'error', summary: '계산 실패', detail: e.message });
+      // toast.current?.show({ severity: 'error', summary: '계산 실패', detail: e.message });\
+      toast.current?.show({
+        severity: 'error',
+        summary: ' ',
+        detail: e.response?.data?.message || e.message || ' ',
+      });
     } finally {
       setLoading(false);
     }
@@ -155,7 +160,7 @@ export default function PerformanceDataTable() {
 
       // 성공 메시지를 '경고(Warn)' 수준으로 변경하여 재계산 유도
       toast.current?.show({
-        severity: 'warn', // ✨ info/success 대신 warn으로 강조
+        severity: 'warn',
         summary: '수정 완료 (재계산 필요)',
         detail: '데이터가 변경되었습니다. 수당 계산을 다시 실행해주세요.',
         life: 5000, // 조금 더 오래 표시
@@ -240,31 +245,34 @@ export default function PerformanceDataTable() {
   );
 
   return (
-    <Card header={cardHeader} className="card-flex-full">
-      {loading ? (
-        <ProgressSpinner className="m-auto" />
-      ) : (
-        <ReusableDataTable<PerformanceData>
-          value={rows}
-          dataKey="id"
-          useHeader
-          useGlobalFilter
-          globalFilterValue={globalFilter}
-          onGlobalFilterChange={setGlobalFilter}
-          loading={loading}
-          usePagination
-          defaultRows={10}
-          scrollHeight="flex"
-          filterDisplay="row"
-          // --- 인라인 편집 ---
-          editMode={canEdit ? 'row' : undefined}
-          editingRows={editingRows}
-          onRowEditChange={(e) => setEditingRows(e.data)}
-          onRowEditComplete={onRowEditComplete}
-        >
-          {performanceCols}
-        </ReusableDataTable>
-      )}
-    </Card>
+    <>
+      <Toast ref={toast} />
+      <Card header={cardHeader} className="card-flex-full">
+        {loading ? (
+          <ProgressSpinner className="m-auto" />
+        ) : (
+          <ReusableDataTable<PerformanceData>
+            value={rows}
+            dataKey="id"
+            useHeader
+            useGlobalFilter
+            globalFilterValue={globalFilter}
+            onGlobalFilterChange={setGlobalFilter}
+            loading={loading}
+            usePagination
+            defaultRows={10}
+            scrollHeight="flex"
+            filterDisplay="row"
+            // --- 인라인 편집 ---
+            editMode={canEdit ? 'row' : undefined}
+            editingRows={editingRows}
+            onRowEditChange={(e) => setEditingRows(e.data)}
+            onRowEditComplete={onRowEditComplete}
+          >
+            {performanceCols}
+          </ReusableDataTable>
+        )}
+      </Card>
+    </>
   );
 }

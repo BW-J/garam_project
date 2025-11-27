@@ -7,14 +7,15 @@
  */
 export function getEffectiveStartDate(joinDate: Date): Date {
   const d = new Date(joinDate.getTime());
-
-  if (d.getDate() <= 15) {
-    // 15일 이전 입사: 당월 1일
-    return new Date(d.getFullYear(), d.getMonth(), 1);
-  } else {
-    // 15일 이후 입사: 익월 1일
-    return new Date(d.getFullYear(), d.getMonth() + 1, 1);
-  }
+  // 15일 룰 제거
+  // if (d.getDate() <= 15) {
+  //   // 15일 이전 입사: 당월 1일
+  //   return new Date(d.getFullYear(), d.getMonth(), 1);
+  // } else {
+  //   // 15일 이후 입사: 익월 1일
+  //   return new Date(d.getFullYear(), d.getMonth() + 1, 1);
+  // }
+  return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
 /**
@@ -42,9 +43,10 @@ export function getNthMonthStr(joinDate: Date, N: number): string {
 
 /**
  * 15일 이후 입사자인지 확인합니다. (실적 이월 대상자)
+ * 15일 룰 제거로 인한 false 반환 처리. 확정 사항이 아니라 일단 유지
  */
 export function isCarryOverTarget(joinDate: Date): boolean {
-  return new Date(joinDate).getDate() > 15;
+  return false;
 }
 
 /**

@@ -12,7 +12,6 @@ const OrgManagement = () => {
     <div className="page-flex-container">
       <TabView className="flex-grow-1 h-full">
         <TabPanel header="부서 관리">
-          {/* 👇 불필요한 중간 div 제거하고 컴포넌트 직접 배치 */}
           <DepartmentTable />
         </TabPanel>
         <TabPanel header="직급 관리">

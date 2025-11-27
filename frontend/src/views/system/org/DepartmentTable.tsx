@@ -105,7 +105,6 @@ export default function DepartmentTable() {
         permissions: permissionSet,
         deptTreeNodes: nodes,
 
-        // 👇 [수정] 훅의 상태와 핸들러를 컬럼 정의 함수로 전달
         filters: filters,
         onFilter: onFilter,
         onAddRoot: permissionSet.canCreate ? addRootNode : undefined,
@@ -122,7 +121,6 @@ export default function DepartmentTable() {
       permissionSet,
       nodes,
 
-      // 👇 [수정] 의존성 배열에 'filters'와 'onFilter'를 추가
       filters,
       onFilter,
       addRootNode,

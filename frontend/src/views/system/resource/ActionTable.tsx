@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 import { Card } from 'primereact/card';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Toast } from 'primereact/toast';
@@ -9,9 +9,13 @@ import { getActionColumns } from 'src/config/grid-defs/actionColDefs';
 import { useAuthStore } from 'src/store/authStore';
 import { getCurrentMenuPermission } from 'src/utils/permissionUtils';
 import { Button } from 'primereact/button';
+import type { DataTableFilterMeta } from 'primereact/datatable';
 
 export default function ActionTable() {
   const toast = useRef<Toast | null>(null);
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    isActive: { value: true, matchMode: 'equals' },
+  });
 
   const authorizedMenu = useAuthStore((state) => state.authorizedMenu);
   const permissionSet = useMemo(() => {
@@ -31,8 +35,8 @@ export default function ActionTable() {
     addRowAndEdit,
     deleteRow,
   } = useDataTable<Action>({
-    apiBaseUrl: '/system/action', // 👈 [수정] 백엔드 ActionController
-    idField: 'actionId', // 👈 [수정] Action PK
+    apiBaseUrl: '/system/action',
+    idField: 'actionId',
     toast: toast,
     newRowDefaults: {
       actionNm: '',
@@ -82,7 +86,7 @@ export default function ActionTable() {
           <ReusableDataTable
             value={rows}
             editMode="row"
-            dataKey="actionId" // 👈 [수정] PK 지정
+            dataKey="actionId"
             editingRows={editingRows}
             onRowEditComplete={onRowEditComplete}
             onRowEditChange={onRowEditChange}
@@ -98,6 +102,8 @@ export default function ActionTable() {
             filterDisplay="row"
             defaultRows={10}
             scrollHeight="flex"
+            filters={filters}
+            onFilter={(e) => setFilters(e.filters)}
           >
             {actionCols}
           </ReusableDataTable>

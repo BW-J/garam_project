@@ -13,7 +13,7 @@ import AdjustmentAmountModal from './AdjustmentAmountModal';
 import { getCommissionSummaryColumns } from 'src/config/grid-defs/commissionSummaryColDefs';
 
 interface CommissionSummaryViewProps {
-  mode: 'MANAGE' | 'MY'; // 👈 동작 모드 결정
+  mode: 'MANAGE' | 'MY';
   commissionType: 'RECRUITMENT' | 'PROMOTION_BONUS';
   title: string;
 }
@@ -86,8 +86,6 @@ export default function CommissionSummaryView({
 
   const onRowClick = (e: any) => {
     setSelectedRow(e.data as CommissionSummary);
-    console.log(e.data);
-    console.log('선택된 데이터 : ', selectedRow);
     setDetailModalVisible(true);
   };
 

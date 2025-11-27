@@ -9,7 +9,7 @@ export const profileFormSchema = z
     userId: z.number(),
 
     // 수정 가능 필드
-    userNm: z.string().min(2, '사용자명은 2자 이상이어야 합니다.'), // 👈 [유지] 스키마에는 포함, 폼에서 disabled 처리
+    userNm: z.string().min(2, '사용자명은 2자 이상이어야 합니다.'),
     email: z.union([
       z.string().email('올바른 이메일 형식이 아닙니다.'),
       z.literal(''),
@@ -29,12 +29,12 @@ export const profileFormSchema = z
     (data) => {
       // ... (기존 refine 로직과 동일) ...
       if (data.password && data.password.length > 0) {
-        return data.password.length >= 8;
+        return data.password.length >= 6;
       }
       return true;
     },
     {
-      message: '비밀번호는 8자 이상이어야 합니다.',
+      message: '비밀번호는 6자 이상이어야 합니다.',
       path: ['password'],
     },
   );

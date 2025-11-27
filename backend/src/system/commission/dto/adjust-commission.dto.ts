@@ -9,13 +9,13 @@ import {
 export class AdjustCommissionDto {
   @IsInt()
   @IsNotEmpty()
-  ledgerId: number; // 👈 수정할 '요약' 테이블(Ledger)의 PK
+  ledgerId: number;
 
   @IsNumber()
   @IsNotEmpty()
-  adjustmentAmount: number; // 👈 조정할 금액 (+/-)
+  adjustmentAmount: number;
 
   @IsString()
   @IsOptional()
-  reason?: string; // 👈 조정 사유
+  reason?: string;
 }

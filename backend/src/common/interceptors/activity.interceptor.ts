@@ -3,6 +3,7 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable, tap } from 'rxjs';
@@ -34,6 +35,7 @@ const sanitizeBody = (body: any, maxSize = 2048) => {
 
 @Injectable()
 export class ActivityInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(ActivityInterceptor.name);
   constructor(
     private readonly activityLogService: ActivityLogService,
     private readonly reflector: Reflector,
@@ -78,6 +80,11 @@ export class ActivityInterceptor implements NestInterceptor {
       tap(async () => {
         if (userId == null || !handlerAction) return;
         const duration = Date.now() - start;
+
+        this.logger.log(
+          `[ACTIVITY LOG] User: ${userId} | ${actionName} | ${method} ${path} | ${res.statusCode} >> (${duration}ms)`,
+        );
+
         await this.activityLogService.record({
           userId,
           actionName,

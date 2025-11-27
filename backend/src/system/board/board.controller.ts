@@ -53,9 +53,7 @@ export class BoardController {
   async create(
     @Param('boardType') boardType: string,
     @Body() dto: CreateBoardDto,
-    @UploadedFiles(
-      fileValidationPipe, // 👈 [신규] 파일 검증 파이프 적용
-    )
+    @UploadedFiles(fileValidationPipe)
     files: Express.Multer.File[],
     @CurrentUser() user: any,
   ) {
@@ -91,9 +89,7 @@ export class BoardController {
     @Param('boardType') boardType: string,
     @Param('boardId', ParseIntPipe) boardId: number,
     @Body() dto: UpdateBoardDto, // CreatePostDto
-    @UploadedFiles(
-      fileValidationPipe, // 👈 [신규] 파일 검증 파이프 적용
-    )
+    @UploadedFiles(fileValidationPipe)
     files: Express.Multer.File[],
     @CurrentUser() user: any,
   ) {
@@ -127,7 +123,7 @@ export class BoardController {
   @Activity('게시글 삭제')
   @Delete(':boardId')
   async delete(
-    @Param('boardType') boardType: string, // 👈 [신규] boardType 파라미터 받기
+    @Param('boardType') boardType: string,
     @Param('boardId', ParseIntPipe) boardId: number,
     @CurrentUser() user: any,
   ) {

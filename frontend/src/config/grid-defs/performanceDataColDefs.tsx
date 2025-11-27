@@ -44,6 +44,7 @@ export const getPerformanceDataColumns = (canEdit: boolean) => {
       field="insurancePremium"
       header="보험료"
       sortable
+      alignHeader={'right'}
       body={(rowData) => currencyBody(rowData, 'insurancePremium')}
       editor={canEdit ? datatableNumberEditor : undefined}
       style={{ minWidth: '8rem', textAlign: 'right' }}
@@ -53,6 +54,7 @@ export const getPerformanceDataColumns = (canEdit: boolean) => {
       field="withdrawal"
       header="철회"
       sortable
+      alignHeader={'right'}
       body={(rowData) => currencyBody(rowData, 'withdrawal')}
       editor={canEdit ? datatableNumberEditor : undefined}
       style={{ minWidth: '8rem', textAlign: 'right' }}
@@ -62,6 +64,7 @@ export const getPerformanceDataColumns = (canEdit: boolean) => {
       field="cancellation"
       header="해지"
       sortable
+      alignHeader={'right'}
       body={(rowData) => currencyBody(rowData, 'cancellation')}
       editor={canEdit ? datatableNumberEditor : undefined}
       style={{ minWidth: '8rem', textAlign: 'right' }}
@@ -71,6 +74,7 @@ export const getPerformanceDataColumns = (canEdit: boolean) => {
       field="lapse"
       header="실효"
       sortable
+      alignHeader={'right'}
       body={(rowData) => currencyBody(rowData, 'lapse')}
       editor={canEdit ? datatableNumberEditor : undefined}
       style={{ minWidth: '8rem', textAlign: 'right' }}
@@ -81,8 +85,9 @@ export const getPerformanceDataColumns = (canEdit: boolean) => {
       header="IQA 유지율"
       sortable
       body={iqaBody}
+      alignHeader={'right'}
       editor={canEdit ? datatableNumberEditor : undefined}
-      style={{ minWidth: '8rem', textAlign: 'center' }}
+      style={{ minWidth: '8rem', textAlign: 'right' }}
     />,
     // (이하 읽기 전용)
     <Column
@@ -90,6 +95,7 @@ export const getPerformanceDataColumns = (canEdit: boolean) => {
       field="settlementAmount"
       header="정산금액"
       sortable
+      alignHeader={'right'}
       body={(rowData) => currencyBody(rowData, 'settlementAmount')}
       style={{ minWidth: '8rem', textAlign: 'right', fontWeight: 'bold' }}
     />,
@@ -99,6 +105,7 @@ export const getPerformanceDataColumns = (canEdit: boolean) => {
       header="절삭금액"
       sortable
       body={(rowData) => currencyBody(rowData, 'truncatedAmount')}
+      alignHeader={'right'}
       headerClassName="hidden-on-mobile"
       bodyClassName="hidden-on-mobile"
       filterHeaderClassName="hidden-on-mobile"

@@ -28,11 +28,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
           ? res
           : (res as any).message || (res as any).error || message;
     } else {
-      // 👈 [3] HttpException이 아닌 모든 알 수 없는 에러를 로깅합니다.
+      // HttpException이 아닌 모든 알 수 없는 에러를 로깅합니다.
       // (DepartmentService 등에서 DB 오류 발생 시 이 부분이 실행됩니다)
       this.logger.error(
         `[Unhandled Exception] ${request.method} ${request.url}`,
-        exception, // 👈 스택 트레이스(stack trace)를 포함한 전체 에러 객체
+        exception, // 스택 트레이스(stack trace)를 포함한 전체 에러 객체
       );
       // message는 보안을 위해 'Internal server error'를 유지합니다.
     }

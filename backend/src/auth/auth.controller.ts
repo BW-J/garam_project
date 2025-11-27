@@ -26,8 +26,8 @@ class LoginDto {
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production', // 💡 HTTPS 환경에서만 전송
-  path: '/', // 💡 사이트 전체에서 유효하도록
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
   // maxAge: ... (auth.service의 refreshExp와 맞추는 것이 좋음)
 };
 
@@ -106,7 +106,7 @@ export class AuthController {
 
     res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);
 
-    // 💡 새 accessToken만 Body로 반환
+    // 새 accessToken만 Body로 반환
     return { accessToken };
   }
 
@@ -117,7 +117,7 @@ export class AuthController {
    */
   @Get('session-info')
   async getSessionInfo(@CurrentUser() user) {
-    // 💡 JwtStrategy.validate에서 반환한 user 객체
+    // JwtStrategy.validate에서 반환한 user 객체
     // JwtStrategy.validate에서 user 엔티티 전체를 반환하도록 수정했다면 user.userId 사용
     // 여기서는 payload 그대로 반환한다고 가정하고 user.sub 사용
     return this.auth.getSessionInfo(user.sub);

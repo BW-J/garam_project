@@ -42,11 +42,11 @@ const AppHeader = ({ onToggleSidebar }: AppHeaderProps) => {
           icon: 'pi pi-fw pi-user',
           command: () => navigate('/profile'), // TODO: 프로필 경로 확인
         },
-        {
-          label: '설정',
-          icon: 'pi pi-fw pi-cog',
-          command: () => navigate('/settings'), // TODO: 설정 경로 확인
-        },
+        // {
+        //   label: '설정',
+        //   icon: 'pi pi-fw pi-cog',
+        //   command: () => navigate('/settings'), // TODO: 설정 경로 확인
+        // },
       ],
     },
     /**  추 후 테마 변경 적용예정
@@ -56,20 +56,19 @@ const AppHeader = ({ onToggleSidebar }: AppHeaderProps) => {
       icon: 'pi pi-fw pi-palette',
       items: [
         {
-          // ✅ FIX: 레이블 및 테마명 변경 (lara -> soho)
+          //  레이블 및 테마명 변경 (lara -> soho)
           label: '라이트 (Soho Light)',
           icon: 'pi pi-fw pi-sun',
           command: () => {
-            // ✅ FIX: lara-dark-blue -> soho-dark, lara-light-blue -> soho-light
+            //  lara-dark-blue -> soho-dark, lara-light-blue -> soho-light
             changeTheme?.('lara-dark-cyan', 'lara-light-cyan', 'theme-link');
           },
         },
         {
-          // ✅ FIX: 레이블 및 테마명 변경 (lara -> soho)
+          //  레이블 및 테마명 변경 (lara -> soho)
           label: '다크 (Soho Dark)',
           icon: 'pi pi-fw pi-moon',
           command: () => {
-            // ✅ FIX: lara-light-blue -> soho-light, lara-dark-blue -> soho-dark
             changeTheme?.('lara-light-cyan', 'lara-dark-cyan', 'theme-link');
           },
         },
@@ -93,7 +92,7 @@ const AppHeader = ({ onToggleSidebar }: AppHeaderProps) => {
   const endContent = (
     <>
       <Menu model={userMenuItems} ref={userMenuRef} popup />
-      {/* ✅ FIX: flex align-items-center 클래스 추가로 수직 정렬 */}
+      {/* flex align-items-center 클래스 추가로 수직 정렬 */}
       <Button
         className="p-button-text p-button-plain flex align-items-center"
         onClick={(e) => userMenuRef.current?.toggle(e)}
@@ -105,7 +104,6 @@ const AppHeader = ({ onToggleSidebar }: AppHeaderProps) => {
   );
 
   return (
-    // ✅ .app-header div로 감싸기 (로고는 없음)
     <div className="app-header">
       <Toolbar start={startContent} end={endContent} className="shadow-1" />
     </div>

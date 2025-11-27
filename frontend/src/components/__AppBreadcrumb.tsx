@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import routes from '../routes';
 
-// ✅ PrimeReact 컴포넌트 임포트
 import { BreadCrumb } from 'primereact/breadcrumb';
 import type { MenuItem } from 'primereact/menuitem';
 
@@ -10,7 +9,6 @@ const AppBreadcrumb = () => {
   const currentLocation = useLocation().pathname;
   const navigate = useNavigate();
 
-  // ⛔️ CoreUI 로직 (getRouteName, getBreadcrumbs)은 그대로 사용합니다.
   const getRouteName = (pathname: string, routes: any[]) => {
     const currentRoute = routes.find((route) => route.path === pathname);
     return currentRoute ? currentRoute.name : false;
@@ -32,7 +30,6 @@ const AppBreadcrumb = () => {
     return breadcrumbs;
   };
 
-  // ✅ CoreUI breadcrumbs 배열을 PrimeReact 'model' 형식으로 변환합니다.
   const primeBreadcrumbs = useMemo((): MenuItem[] => {
     const coreBreadcrumbs = getBreadcrumbs(currentLocation);
 
@@ -50,7 +47,6 @@ const AppBreadcrumb = () => {
     return [{ label: 'Home', command: () => navigate('/') }, ...items];
   }, [currentLocation, navigate]);
 
-  // ⛔️ <CBreadcrumb> 대신 <BreadCrumb> 사용
   return <BreadCrumb model={primeBreadcrumbs} className="app-breadcrumb" />;
 };
 

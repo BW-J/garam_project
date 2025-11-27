@@ -1,4 +1,3 @@
-// src/views/performance/MyCommissionPage.tsx
 import CommissionSummaryView from '../system/commission/CommissionSummaryView';
 
 export default function MyCommissionPage() {

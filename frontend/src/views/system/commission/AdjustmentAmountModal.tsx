@@ -17,7 +17,7 @@ interface AdjustmentAmountModalProps {
   visible: boolean;
   onHide: () => void;
   onSave: () => void;
-  ledgerData: CommissionSummary | null; // 👈 조정 대상이 되는 요약본
+  ledgerData: CommissionSummary | null;
 }
 
 export default function AdjustmentAmountModal({
@@ -51,7 +51,7 @@ export default function AdjustmentAmountModal({
 
     try {
       await api.post('/system/commission/manage/adjust', {
-        ledgerId: ledgerData.ledgerId, // 👈 [핵심] 요약본 ID 전달
+        ledgerId: ledgerData.ledgerId,
         adjustmentAmount: data.adjustmentAmount,
         reason: data.reason,
       });

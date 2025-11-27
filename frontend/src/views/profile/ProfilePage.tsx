@@ -6,8 +6,8 @@ import { Password } from 'primereact/password';
 import { Toast } from 'primereact/toast';
 import { classNames } from 'primereact/utils';
 import api from 'src/api/axios';
-import { Calendar } from 'primereact/calendar'; // 👈 [신규]
-import { ProgressSpinner } from 'primereact/progressspinner'; // 👈 [신규]
+import { Calendar } from 'primereact/calendar';
+import { ProgressSpinner } from 'primereact/progressspinner';
 
 // React Hook Form 및 Zod
 import { useForm, Controller } from 'react-hook-form';
@@ -16,9 +16,9 @@ import { profileFormSchema, type ProfileFormData } from 'src/config/schemas/prof
 
 // JSEncrypt 및 AuthStore
 import { JSEncrypt } from 'jsencrypt';
-import { useAuthActions, type UserState } from 'src/store/authStore'; // 👈 [수정] UserState 임포트
+import { useAuthActions, type UserState } from 'src/store/authStore';
 import { useNavigate } from 'react-router-dom';
-import type { User } from 'src/config/types/User'; // 👈 [신규] Full User 타입 임포트
+import type { User } from 'src/config/types/User';
 
 /**
  * 개인정보 수정 페이지
@@ -28,9 +28,8 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [publicKey, setPublicKey] = useState<string | null>(null);
 
-  // 👇 [신규] 스토어 유저가 아닌, API로 받아온 Full User 정보를 담을 State
   const [fullUser, setFullUser] = useState<User | null>(null);
-  const [pageLoading, setPageLoading] = useState(true); // 👈 [신규] 페이지 로딩 State
+  const [pageLoading, setPageLoading] = useState(true);
 
   // 1. AuthStore에서 업데이트 액션만 가져오기
   const { updateUserInfo } = useAuthActions();
@@ -49,10 +48,10 @@ export default function ProfilePage() {
   useEffect(() => {
     setPageLoading(true);
     api
-      .get('/system/users/me') // 👈 [수정] '/me' 엔드포인트에서 Full User 정보 조회
+      .get('/system/users/me')
       .then((res) => {
-        const user: User = res.data; // 👈 API 응답 (Full User)
-        setFullUser(user); // 👈 [신규] 읽기전용 필드를 위해 Full User 저장
+        const user: User = res.data;
+        setFullUser(user);
 
         // 폼 데이터 채우기 (profileFormSchema에 정의된 필드만)
         reset({
@@ -60,7 +59,7 @@ export default function ProfilePage() {
           userNm: user.userNm,
           email: user.email || '',
           cellPhone: user.cellPhone || '',
-          address: user.address || '', // 👈 [신규]
+          address: user.address || '',
           password: '', // 비밀번호 필드는 항상 비워둠
         });
 
@@ -79,7 +78,7 @@ export default function ProfilePage() {
       .finally(() => {
         setPageLoading(false);
       });
-  }, [reset, publicKey]); // 👈 의존성 수정
+  }, [reset, publicKey]);
 
   // 4. 저장 (Submit) 핸들러 (변경 없음)
   const onSubmit = async (data: ProfileFormData) => {
@@ -113,7 +112,6 @@ export default function ProfilePage() {
         delete payload.password; // 비밀번호 변경 안 함
       }
 
-      // 🚨 [수정] API 호출 경로 (백엔드 user.controller.ts의 @Patch('me/:userId')와 일치시킴)
       const response = await api.patch(`/system/users/me/${payload.userId}`, payload);
 
       // ... (성공 토스트, AuthStore 업데이트, 네비게이트 로직은 기존과 동일) ...
@@ -123,7 +121,7 @@ export default function ProfilePage() {
         detail: '정보가 수정되었습니다.',
       });
       updateUserInfo(response.data as UserState);
-      setTimeout(() => navigate('/'), 2000);
+      setTimeout(() => navigate('/'), 1500);
     } catch (error: any) {
       // ... (에러 처리 로직은 기존과 동일) ...
       console.error('저장 실패', error);
@@ -137,7 +135,6 @@ export default function ProfilePage() {
   };
 
   if (pageLoading || !fullUser) {
-    // 👈 [수정]
     return <ProgressSpinner style={{ width: '50px', height: '50px' }} />;
   }
 
@@ -252,7 +249,7 @@ export default function ProfilePage() {
                       onChange={field.onChange}
                       feedback={false}
                       toggleMask
-                      placeholder="8자 이상 입력"
+                      placeholder="6자 이상 입력"
                       className={classNames({ 'p-invalid': fieldState.error })}
                     />
                   )}

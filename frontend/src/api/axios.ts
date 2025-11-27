@@ -93,7 +93,7 @@ api.interceptors.response.use(
         }
         return api(originalRequest);
       } catch (refreshError) {
-        // ✅ 리프레시 실패 시 인증 정보 클리어 및 로그인 페이지로 강제 이동
+        // 리프레시 실패 시 인증 정보 클리어 및 로그인 페이지로 강제 이동
         useAuthStore.getState().actions.logout();
 
         //  이미 로그인 페이지면 이동하지 않음

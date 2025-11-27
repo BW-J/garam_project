@@ -11,6 +11,7 @@ import { UserPasswordService } from './user-password.service';
 import { UserClosureModule } from '../user-closure/user-closure.module';
 import { UserClosure } from 'src/core/entities/tb_user_closure.entity';
 import { UserPositionHistory } from 'src/core/entities/tb_user_position_history.entity';
+import { PerformanceData } from 'src/core/entities/tb_performance_data.entity';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserPositionHistory } from 'src/core/entities/tb_user_position_history.
       UserPasswordHistory,
       UserClosure,
       UserPositionHistory,
+      PerformanceData,
     ]),
     forwardRef(() => DepartmentModule),
     forwardRef(() => PositionModule),
