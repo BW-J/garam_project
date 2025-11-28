@@ -366,7 +366,7 @@ export class UserService extends BaseService<User> {
   async findOneById(userId: number): Promise<UserResponseDto> {
     const user = await this.userRepository.findOne({
       where: { userId },
-      relations: ['department', 'position'],
+      relations: ['department', 'position', 'recommender'],
     });
     if (!user) throw new NotFoundException(`User ID ${userId} not found`);
     return plainToInstance(UserResponseDto, user);

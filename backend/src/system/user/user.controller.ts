@@ -55,6 +55,24 @@ export class UserController {
   }
 
   /**
+   * 하위 계보도 조회 (관리자용)
+   * @param userId
+   * @param depth
+   * @returns
+   */
+  @Get(':userId/genealogy')
+  @Permission('USER_MGMT', 'VIEW')
+  @Activity('사용자 계보도 조회')
+  async getUserGenealogy(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('depth', new ParseIntPipe({ optional: true })) depth?: number,
+  ): Promise<UserGenealogyNodeDto[]> {
+    // 99단계까지 조회 (사실상 제한 없음)
+    const maxDepth = 99;
+    return this.userService.findGenealogyTree(userId, maxDepth);
+  }
+
+  /**
    * 내정보 수정
    * @param userId
    * @param dto

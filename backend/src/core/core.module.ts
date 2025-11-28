@@ -15,6 +15,7 @@ import { PerformanceData } from './entities/tb_performance_data.entity';
 import { Attachment } from './entities/tb_attachment.entity';
 import { Board } from './entities/tb_board.entity';
 import { UserPositionHistory } from './entities/tb_user_position_history.entity';
+import { Bank } from './entities/tb_bank.entity';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UserPositionHistory } from './entities/tb_user_position_history.entity'
       Board,
       Attachment,
       UserPositionHistory,
+      Bank,
     ]),
   ],
   providers: [CoreService],

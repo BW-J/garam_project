@@ -10,10 +10,6 @@ import {
   ValidateIf,
   MinLength,
 } from 'class-validator';
-
-const PASSWORD_REGEX =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
@@ -70,4 +66,36 @@ export class UpdateUserDto {
   @IsOptional()
   @IsDate()
   passwordChangedAt?: Date;
+
+  @IsOptional()
+  @IsDateString()
+  joinDate?: Date | null;
+
+  @IsOptional()
+  @IsDateString()
+  appointmentDate?: Date | null;
+
+  @IsOptional()
+  @IsString()
+  zipCode?: string;
+
+  @IsOptional()
+  @IsString()
+  addressDetail?: string;
+
+  @IsOptional()
+  @IsString()
+  bankCode?: string;
+
+  @IsOptional()
+  @IsString()
+  accountNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  accountHolder?: string;
+
+  @IsOptional()
+  @IsString()
+  accountRelation?: string;
 }

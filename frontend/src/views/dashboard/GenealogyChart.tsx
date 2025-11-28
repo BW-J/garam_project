@@ -20,6 +20,12 @@ interface GenealogyNode {
   label?: string;
 }
 
+interface GenealogyChartProps {
+  targetUserId?: number; // 이 값이 있으면 해당 유저 조회, 없으면 'me' 조회
+  title?: string; // 카드 제목 커스텀
+  viewMode?: 'WIDGET' | 'FULL';
+}
+
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('ko-KR', {
     style: 'currency',
@@ -77,39 +83,51 @@ const nodeTemplate = (node: OrganizationChartNodeData) => {
  * 하위 추천 계보도 표시 컴포넌트
  * 대시보드용 (depth 0, 1) 및 모달용 (전체 depth)
  */
-export default function GenealogyChart() {
+export default function GenealogyChart({
+  targetUserId,
+  title = '계보도',
+  viewMode = 'WIDGET',
+}: GenealogyChartProps) {
   const [dashboardNodes, setDashboardNodes] = useState<GenealogyNode[]>([]);
   const [fullNodes, setFullNodes] = useState<GenealogyNode[]>([]);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
   const [loadingFull, setLoadingFull] = useState(false);
   const [showFullGenealogy, setShowFullGenealogy] = useState(false);
 
+  const getApiUrl = () => {
+    return targetUserId ? `/system/users/${targetUserId}/genealogy` : '/system/users/me/genealogy';
+  };
   // 대시보드용 데이터 로드 (depth=1: 본인 + 1단계)
   const loadDashboardData = useCallback(() => {
     setLoadingDashboard(true);
     api
-      .get('/system/users/me/genealogy', { params: { depth: 1 } })
+      .get(getApiUrl(), { params: { depth: 1 } })
       .then((res) => {
         setDashboardNodes(res.data);
       })
       .catch((err) => console.error('대시보드 계보도 데이터 로드 실패', err))
       .finally(() => setLoadingDashboard(false));
-  }, []);
+  }, [targetUserId]);
 
   // 전체 계보도 데이터 로드 (depth=10 또는 기본값)
   const loadFullGenealogyData = useCallback(() => {
     setLoadingFull(true);
     api
-      .get('/system/users/me/genealogy', { params: { depth: 10 } })
+      .get(getApiUrl(), { params: { depth: 10 } })
       .then((res) => {
         setFullNodes(res.data);
       })
       .catch((err) => console.error('전체 계보도 데이터 로드 실패', err))
       .finally(() => setLoadingFull(false));
-  }, []);
+  }, [targetUserId]);
 
   useEffect(() => {
-    loadDashboardData();
+    if (viewMode === 'FULL') {
+      loadFullGenealogyData(); // 전체 데이터 즉시 로드
+    } else {
+      loadDashboardData(); // 요약 데이터 로드
+      setFullNodes([]);
+    }
   }, [loadDashboardData]);
 
   // '전체 계보도 보기' 버튼 클릭 핸들러
@@ -124,10 +142,37 @@ export default function GenealogyChart() {
     setShowFullGenealogy(false);
   };
 
+  if (viewMode === 'FULL') {
+    return (
+      <div className="h-full w-full flex flex-column">
+        {/* 메인 차트 영역 */}
+        <div className="flex-grow-1 overflow-auto p-3" style={{ minHeight: '100%' }}>
+          {loadingFull && (
+            <div className="flex justify-content-center align-items-center h-full">
+              <ProgressSpinner style={{ width: '50px', height: '50px' }} strokeWidth="8" />
+            </div>
+          )}
+          {!loadingFull && fullNodes.length === 0 && (
+            <div className="text-center p-5">하위 조직 정보가 없습니다.</div>
+          )}
+          {!loadingFull && fullNodes.length > 0 && (
+            <div className="primereact-orgchart-wrapper-full">
+              <OrganizationChart
+                value={fullNodes}
+                nodeTemplate={nodeTemplate}
+                selectionMode="single"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // 대시보드용 카드 헤더
   const dashboardCardHeader = (
     <div className="flex justify-content-between align-items-center pt-3 px-3">
-      <span className="p-card-title">계보도</span>
+      <span className="p-card-title">{title}</span>
       <div className="flex gap-2">
         <Button
           label="전체 보기"
@@ -169,7 +214,7 @@ export default function GenealogyChart() {
 
       {/* 전체 계보도를 표시할 모달 */}
       <Dialog
-        header="전체 하위 추천 계보도"
+        header={`${title} - 전체보기`}
         visible={showFullGenealogy}
         onHide={onHideFullGenealogy}
         maximizable

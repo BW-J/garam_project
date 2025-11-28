@@ -26,6 +26,7 @@ import { PromotionModule } from './system/promotion/promotion.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { TypeOrmWinstonLogger } from './logger/typeorm-winston-logger';
 import { createTypeOrmLogger } from './logger/winston-logger';
+import { BankModule } from './system/bank/bank.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { createTypeOrmLogger } from './logger/winston-logger';
     CommissionModule,
     BoardModule,
     PromotionModule,
+    BankModule,
   ],
   controllers: [AppController],
   providers: [

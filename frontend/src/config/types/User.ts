@@ -24,6 +24,21 @@ export interface User {
   positionId?: number | null;
   recommenderId?: number | null;
 
-  // 생성 시에만 사용
   password?: string;
+
+  joinDate?: Date | string | null;
+  appointmentDate?: Date | string | null;
+
+  zipCode?: string;
+  addressDetail?: string;
+
+  bankCode?: string;
+  accountNumber?: string;
+  accountHolder?: string;
+  accountRelation?: string;
+
+  bank?: {
+    bankCode: string;
+    bankName: string;
+  };
 }

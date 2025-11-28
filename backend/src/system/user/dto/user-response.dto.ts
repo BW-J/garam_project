@@ -30,4 +30,12 @@ export class UserResponseDto {
   @Expose() birthDate: Date;
 
   @Expose() address: string;
+  @Expose() joinDate?: Date;
+  @Expose() appointmentDate?: Date;
+  @Expose() zipCode?: string;
+  @Expose() addressDetail?: string;
+  @Expose() bankCode?: string;
+  @Expose() accountNumber?: string;
+  @Expose() accountHolder?: string;
+  @Expose() accountRelation?: string;
 }

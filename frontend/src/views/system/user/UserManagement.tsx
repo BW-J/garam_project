@@ -12,6 +12,9 @@ import UserFormModal from 'src/views/system/user/UserFormModal';
 import type { User } from 'src/config/types/User';
 import api from 'src/api/axios';
 import type { DataTableFilterMeta } from 'primereact/datatable';
+import { ContextMenu } from 'primereact/contextmenu';
+import { Dialog } from 'primereact/dialog';
+import GenealogyChart from 'src/views/dashboard/GenealogyChart';
 
 export default function UserManagement() {
   const toast = useRef<Toast | null>(null);
@@ -20,12 +23,23 @@ export default function UserManagement() {
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     isActive: { value: true, matchMode: 'equals' },
   });
+  const cm = useRef<ContextMenu | null>(null);
+  const [contextSelectedUser, setContextSelectedUser] = useState<User | null>(null);
+  const [isGenealogyVisible, setIsGenealogyVisible] = useState(false);
 
   const authorizedMenu = useAuthStore((state) => state.authorizedMenu);
   const permissionSet = useMemo(() => {
     return getCurrentMenuPermission(authorizedMenu);
   }, [authorizedMenu]);
 
+  const contextMenuItems = [
+    {
+      label: '계보도 보기',
+      icon: 'pi pi-sitemap',
+      command: () => setIsGenealogyVisible(true),
+    },
+    // 필요 시 '비밀번호 초기화' 등 추가 가능
+  ];
   //useDataTable의 deleteRow는 사용하지 않음
   const {
     rows,
@@ -147,6 +161,23 @@ export default function UserManagement() {
   return (
     <>
       <Toast ref={toast} />
+      <ContextMenu model={contextMenuItems} ref={cm} />
+      <Dialog
+        visible={isGenealogyVisible}
+        onHide={() => {
+          setIsGenealogyVisible(false);
+          // setContextSelectedUser(null); // 모달 닫을 때 초기화하고 싶다면 주석 해제 (안 해도 무방)
+        }}
+        style={{ width: '80vw', height: '90vh' }}
+        header={`[${contextSelectedUser?.userNm}] 님 조직도`}
+        maximizable
+        modal
+      >
+        {contextSelectedUser && (
+          // 방금 수정한 GenealogyChart 컴포넌트 재사용 (targetUserId 전달)
+          <GenealogyChart targetUserId={contextSelectedUser.userId} title="" viewMode="FULL" />
+        )}
+      </Dialog>
       <UserFormModal
         visible={isModalVisible}
         onHide={() => setIsModalVisible(false)}
@@ -180,6 +211,17 @@ export default function UserManagement() {
               scrollHeight="flex"
               filters={filters}
               onFilter={(e) => setFilters(e.filters)}
+              contextMenuSelection={contextSelectedUser ?? undefined}
+              onContextMenuSelectionChange={(e) => setContextSelectedUser(e.value)}
+              onContextMenu={(e) => {
+                const clickedUser = e.data as User;
+
+                setContextSelectedUser(clickedUser);
+                console.log(`${clickedUser.userNm} = clickedUser`);
+                console.log(`${contextSelectedUser?.userNm} = contextSelectedUser`);
+
+                cm.current?.show(e.originalEvent);
+              }}
             >
               {userCols}
             </ReusableDataTable>

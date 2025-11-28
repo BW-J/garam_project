@@ -14,6 +14,7 @@ import { UserRoleMap } from './tb_user_role_map.entity';
 import { UserPasswordHistory } from './tb_user_password_history';
 import { UserClosure } from './tb_user_closure.entity';
 import { UserPositionHistory } from './tb_user_position_history.entity';
+import { Bank } from './tb_bank.entity';
 
 @Entity({ name: 'tb_user' })
 export class User extends BaseAuditEntity {
@@ -95,6 +96,34 @@ export class User extends BaseAuditEntity {
 
   @OneToMany(() => UserPositionHistory, (history) => history.user)
   positionHistory: UserPositionHistory[];
+
+  @Column({ name: 'join_date', type: 'date', nullable: true })
+  joinDate?: Date | null;
+
+  @Column({ name: 'appointment_date', type: 'date', nullable: true })
+  appointmentDate?: Date | null;
+
+  @Column({ name: 'zip_code', length: 10, nullable: true })
+  zipCode?: string;
+
+  @Column({ name: 'address_detail', length: 255, nullable: true })
+  addressDetail?: string;
+
+  @Column({ name: 'bank_code', length: 10, nullable: true })
+  bankCode?: string;
+
+  @Column({ name: 'account_number', length: 50, nullable: true })
+  accountNumber?: string;
+
+  @Column({ name: 'account_holder', length: 50, nullable: true })
+  accountHolder?: string;
+
+  @Column({ name: 'account_relation', length: 20, nullable: true })
+  accountRelation?: string;
+
+  @ManyToOne(() => Bank, { nullable: true })
+  @JoinColumn({ name: 'bank_code' })
+  bank?: Bank;
 
   // soft delete
   @DeleteDateColumn({
