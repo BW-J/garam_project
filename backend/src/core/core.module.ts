@@ -16,6 +16,8 @@ import { Attachment } from './entities/tb_attachment.entity';
 import { Board } from './entities/tb_board.entity';
 import { UserPositionHistory } from './entities/tb_user_position_history.entity';
 import { Bank } from './entities/tb_bank.entity';
+import { PerformanceDetail } from './entities/tb_performance_detail.entity';
+import { Performance } from './entities/tb_performance.entity';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { Bank } from './entities/tb_bank.entity';
       Department,
       User,
       PerformanceData,
+      PerformanceDetail,
+      Performance,
       CommissionLedger,
       Board,
       Attachment,

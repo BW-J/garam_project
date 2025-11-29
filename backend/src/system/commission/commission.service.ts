@@ -306,7 +306,7 @@ export class CommissionService {
     // 1-1. 모든 활성 사용자 정보
     const users = await this.userRepo.find({
       where: { isActive: true, deletedAt: IsNull() },
-      select: ['userId', 'isActive', 'createdAt'],
+      select: ['userId', 'isActive', 'appointmentDate'],
     });
     const userMap = new Map(users.map((u) => [u.userId, u]));
 
@@ -461,7 +461,7 @@ export class CommissionService {
         newPositionId: managerPosId,
         changedAt: Between(startDate, endDate),
       },
-      relations: ['user'], // user.createdAt (입사일) 필요
+      relations: ['user'],
       order: { changedAt: 'ASC' },
     });
 
@@ -522,7 +522,7 @@ export class CommissionService {
               allDownlineIds: [...allDownlineIds],
             })
             .andWhere(
-              "perf.yearMonth <= TO_CHAR(user.createdAt + interval '6 months', 'YYYY-MM')",
+              "perf.yearMonth <= TO_CHAR(user.appointment_date + interval '6 months', 'YYYY-MM')",
             )
             .getRawMany();
 
@@ -538,12 +538,14 @@ export class CommissionService {
     for (const history of promotionHistory) {
       const user = history.user;
       if (user === null) continue;
+      if (!user.appointmentDate) continue;
+
       const effectivePromotionStart = getEffectiveStartDate(history.changedAt);
       const N_Payment = calculationDate.diff(effectivePromotionStart, 'month');
 
       if (N_Payment < 1 || N_Payment > 7) continue;
 
-      const effectiveJoinDate = getEffectiveStartDate(user.createdAt);
+      const effectiveJoinDate = getEffectiveStartDate(user.appointmentDate);
       const employmentMonthsAtPromotion = dayjs(effectivePromotionStart).diff(
         effectiveJoinDate,
         'month',
@@ -572,7 +574,7 @@ export class CommissionService {
         // 6. [개선] 6개월 누적 실적 300만원 검증 (인메모리)
         const perfCheck = this.checkDownlinePerformance_InMemory(
           member.userId,
-          member.createdAt,
+          member.appointmentDate!,
           6,
           perfMap, // 준비된 Map 전달
         );
@@ -591,7 +593,7 @@ export class CommissionService {
           sourceUserId: member.userId,
           details: {
             bonusMonth: `${N_Payment}개월차`,
-            sourceUserJoinDate: member.createdAt,
+            sourceUserJoinDate: member.appointmentDate,
             sourceUserPerfCheck: perfCheck.details,
             isQualified: perfCheck.isQualified,
             note: note,
@@ -663,7 +665,7 @@ export class CommissionService {
       .select('user.userId')
       .where('user.isActive = :isActive', { isActive: true })
       .andWhere('user.deletedAt IS NULL')
-      .andWhere('user.createdAt < :nextMonthDate', { nextMonthDate })
+      .andWhere('user.appointment_date < :nextMonthDate', { nextMonthDate })
       .andWhere('user.userId != 0'); // 관리자 계정 제외
 
     if (excludedIds.length > 0) {
@@ -877,8 +879,14 @@ export class CommissionService {
       return { isEligible: false, note: '수급자 정보 없음 또는 비활성' };
     }
 
-    // 1. [자격 1] 입사 1년 미만
-    if (user.createdAt > oneYearAgo) {
+    if (!user.appointmentDate) {
+      return { isEligible: false, note: '위촉일 미정 (수당 대상 아님)' };
+    }
+
+    const effectiveJoinDate = getEffectiveStartDate(user.appointmentDate);
+
+    // 1. [자격 1] 위촉 1년 미만
+    if (effectiveJoinDate && effectiveJoinDate > oneYearAgo) {
       return { isEligible: true, note: '입사 1년 미만 (자동 충족)' };
     }
 
@@ -1056,23 +1064,21 @@ export class CommissionService {
     downlineMap: Map<number, User[]>, // <ancestorId, User[]>
   ): User[] {
     const allUserDownlines = downlineMap.get(user.userId) || [];
+    if (!user.appointmentDate) return [];
 
-    const targetMonthStr = getNthMonthStr(user.createdAt, N);
+    const targetMonthStr = getNthMonthStr(user.appointmentDate, N);
+    if (!targetMonthStr) return [];
+
     const targetStartDate = dayjs(targetMonthStr).startOf('month').toDate();
     const targetEndDate = dayjs(targetMonthStr).endOf('month').toDate();
 
     let finalStartDate = targetStartDate;
 
-    // 15일룰 적용 (N=1이고 15일 이후 입사자면, 입사 당월 실적도 포함)
-    if (N === 1 && isCarryOverTarget(user.createdAt)) {
-      const joinMonthStr = getJoinMonthStr(user.createdAt);
-      finalStartDate = dayjs(joinMonthStr).startOf('month').toDate();
-    }
-
     // [개선] DB 쿼리 대신 메모리에서 필터링
     return allUserDownlines.filter((member) => {
-      const createdAt = member.createdAt;
-      return createdAt >= finalStartDate && createdAt <= targetEndDate;
+      const appDate = member.appointmentDate;
+      if (!appDate) return false;
+      return appDate >= finalStartDate && appDate <= targetEndDate;
     });
   }
 
@@ -1119,18 +1125,30 @@ export class CommissionService {
    */
   private checkDownlinePerformance_InMemory(
     userId: number,
-    joinDate: Date,
+    joinDate: Date | null,
     months: number,
     perfMap: Map<number, PerformanceData[]>, // <userId, Perf[]>
   ): {
     isQualified: boolean;
     details: { checkPeriod: string; totalPerf: string };
   } {
+    if (!joinDate) {
+      return {
+        isQualified: false,
+        details: { checkPeriod: '-', totalPerf: '0' },
+      };
+    }
     // [개선] DB 쿼리 대신 Map에서 해당 유저의 실적 배열을 가져옴
     const userPerf = perfMap.get(userId) || [];
 
-    // "15일 룰"을 적용한 유효 시작월 계산
+    // 위촉일의 유효 시작일(1일) 기준
     const effectiveStartDate = getEffectiveStartDate(joinDate);
+    if (!effectiveStartDate) {
+      return {
+        isQualified: false,
+        details: { checkPeriod: '-', totalPerf: '0' },
+      };
+    }
     const startMonthStr = dayjs(effectiveStartDate).format('YYYY-MM');
     const endMonthStr = dayjs(effectiveStartDate)
       .add(months - 1, 'month')

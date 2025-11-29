@@ -5,8 +5,11 @@
  * @param joinDate 사용자의 입사일(createdAt)
  * @returns 해당 사용자의 1개월차가 시작되는 '월의 1일' Date 객체
  */
-export function getEffectiveStartDate(joinDate: Date): Date {
-  const d = new Date(joinDate.getTime());
+export function getEffectiveStartDate(
+  joinDate: Date | null | undefined,
+): Date | null {
+  if (!joinDate) return null;
+  const d = new Date(joinDate);
   // 15일 룰 제거
   // if (d.getDate() <= 15) {
   //   // 15일 이전 입사: 당월 1일
@@ -25,8 +28,12 @@ export function getEffectiveStartDate(joinDate: Date): Date {
  * @param joinDate 사용자의 입사일
  * @param N (N개월차)
  */
-export function getNthMonthStr(joinDate: Date, N: number): string {
+export function getNthMonthStr(
+  joinDate: Date | null | undefined,
+  N: number,
+): string | null {
   const effectiveStartDate = getEffectiveStartDate(joinDate);
+  if (!effectiveStartDate) return null;
 
   // (N-1)개월을 더함 (1개월차 = 0개월 더함)
   const targetDate = new Date(

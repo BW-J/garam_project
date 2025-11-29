@@ -208,7 +208,6 @@ export class PromotionService {
     } else {
       throw new BadRequestException('Invalid target position');
     }
-
     // 1. 대상 사용자 목록 조회
     const users = await this.userRepo.find({
       where: {
@@ -218,10 +217,8 @@ export class PromotionService {
       },
       relations: ['position'],
     });
-
     // 2. 대상자들의 자격 요건 일괄 검사
     const eligibilityMap = await this.checkEligibilityBatch(users);
-
     // 3. 인메모리 데이터 조합
     const results = users.map((user) => {
       const eligibility = eligibilityMap.get(user.userId) || {
@@ -234,12 +231,11 @@ export class PromotionService {
           userNm: user.userNm,
           loginId: user.loginId,
           position: user.position,
-          createdAt: user.createdAt,
+          appointmentDate: user.appointmentDate,
         },
         ...eligibility,
       };
     });
-
     // 전체 반환 (프론트에서 필터링: 충족 / 미충족)
     return results;
   }
@@ -252,38 +248,31 @@ export class PromotionService {
     if (users.length === 0) {
       return new Map();
     }
-
     const userIds = users.map((u) => u.userId);
 
     // --- 1. 모든 필요 데이터 일괄 프리패치 (Pre-fetch) ---
 
     // 조건 1/2: 개인 누적 실적 및 평균 IQA
     const { perfMap, iqaMap } = await this.getPersonalPerformanceBatch(userIds);
-
     // 조건 3: 직계 추천 2명
     const directRecruitMap = await this.getDirectRecruitCountBatch(userIds);
-
     // 조건 4/5: 산하 10/30명, 직전 3개월 산하 실적 1000/3000만
     const { downlineCountMap, downlinePerfMap } =
       await this.getDownlineMetricsBatch(userIds);
-
     // 조건 6 (지사장용): 본부장 승진일
     const managerPosId = await this.getPositionId(PositionCode.MANAGER);
     const promotionDateMap = await this.getLatestPositionChangeDateBatch(
       userIds,
       managerPosId,
     );
-
     // 직급 ID 미리 조회
     const sfpPosId = await this.getPositionId(PositionCode.SFP);
     const directorPosId = await this.getPositionId(PositionCode.DIRECTOR);
 
     // --- 2. 인메모리 검사 ---
     const results = new Map<number, any>();
-
     for (const user of users) {
       let eligibilityCheck;
-
       if (user.positionId === sfpPosId) {
         // 본부장 승진 검사 (인메모리)
         eligibilityCheck = this.checkManagerEligibility_InMemory(
@@ -354,34 +343,38 @@ export class PromotionService {
     downlinePerf3M: number,
   ) {
     const unmetConditions: string[] = [];
+    if (!user.appointmentDate) {
+      return {
+        isEligible: false,
+        unmetConditions: ['위촉일 정보 없음 (승진 대상 아님)'],
+      };
+    }
     const checkDate = dayjs(); // 오늘 날짜 기준
     let falseCount = 0;
-
-    const effectiveStartDate = getEffectiveStartDate(user.createdAt);
+    const effectiveStartDate = getEffectiveStartDate(user.appointmentDate);
     // 7개월이 지난 시점 (즉, 8개월차 1일)
     const eligibleDate = dayjs(effectiveStartDate).add(7, 'month');
-
     // 오늘 날짜가 8개월차 1일보다 이전이면 (즉, 7개월 미경과)
     if (eligibleDate.isAfter(checkDate)) {
       unmetConditions.push(
-        `입사 7개월 미만  ${eligibleDate.format('YYYY-MM')} 부터 승진 가능`,
+        `위촉 7개월 미만  ${eligibleDate.format('YYYY-MM')} 부터 승진 가능`,
       );
       falseCount++;
     } else {
       unmetConditions.push(
-        `입사 7개월 이상 : ${eligibleDate.format('YYYY-MM')} 부터 승진 가능`,
+        `위촉 7개월 이상 : ${eligibleDate.format('YYYY-MM')} 부터 승진 가능`,
       );
     }
 
     // 조건 2: 개인 누적 실적 600만
     if (personalPerf < 6000000) {
       unmetConditions.push(
-        `개인 누적 실적 부족 (현재 ${personalPerf.toLocaleString('ko-KR')}원)`,
+        `개인 누적 실적(600만) 부족 (현재 ${personalPerf.toLocaleString('ko-KR')}원)`,
       );
       falseCount++;
     } else {
       unmetConditions.push(
-        `개인 누적 실적 충족 (현재 ${personalPerf.toLocaleString('ko-KR')}원)`,
+        `개인 누적 실적(600만) 충족 (현재 ${personalPerf.toLocaleString('ko-KR')}원)`,
       );
     }
 
@@ -392,7 +385,6 @@ export class PromotionService {
     } else {
       unmetConditions.push(`IQA 유지율 80% 충족 (현재 ${avgIQA.toFixed(2)}%)`);
     }
-
     // 조건 4: 직계 추천 2명
     if (directRecruits < 2) {
       unmetConditions.push(`직계 추천인 2명 미만 (현재 ${directRecruits}명)`);
@@ -400,7 +392,6 @@ export class PromotionService {
     } else {
       unmetConditions.push(`직계 추천인 2명 이상 (현재 ${directRecruits}명)`);
     }
-
     // 조건 5: 산하 10명 (1~10 depth)
     if (downlineCount < 10) {
       unmetConditions.push(`산하 10명 미만 (현재 ${downlineCount}명)`);
@@ -408,7 +399,6 @@ export class PromotionService {
     } else {
       unmetConditions.push(`산하 10명 이상 (현재 ${downlineCount}명)`);
     }
-
     // 조건 6: 직전 3개월 산하 실적 1000만 (1~10 depth)
     if (downlinePerf3M < 10000000) {
       unmetConditions.push(
@@ -420,7 +410,6 @@ export class PromotionService {
         `직전 3개월 산하 실적 충족 (현재 ${downlinePerf3M.toLocaleString('ko-KR')}원)`,
       );
     }
-
     return {
       isEligible: falseCount === 0,
       unmetConditions,
@@ -503,12 +492,12 @@ export class PromotionService {
     // 조건 4: 직전 3개월 산하 실적 3000만
     if (downlinePerf3M < 30000000) {
       unmetConditions.push(
-        `직전 3개월 산하 실적 부족 (현재 ${downlinePerf3M.toLocaleString('ko-KR')}원)`,
+        `직전 3개월 산하 실적(3000만) 부족 (현재 ${downlinePerf3M.toLocaleString('ko-KR')}원)`,
       );
       falseCount++;
     } else {
       unmetConditions.push(
-        `직전 3개월 산하 실적 충족 (현재 ${downlinePerf3M.toLocaleString('ko-KR')}원)`,
+        `직전 3개월 산하 실적(3000만) 충족 (현재 ${downlinePerf3M.toLocaleString('ko-KR')}원)`,
       );
     }
 

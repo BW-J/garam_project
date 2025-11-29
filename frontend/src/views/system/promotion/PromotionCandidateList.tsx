@@ -19,7 +19,7 @@ interface PromotionCandidate {
     userId: number;
     userNm: string;
     loginId: string;
-    createdAt: string;
+    appointmentDate: string;
   };
   isEligible: boolean;
   unmetConditions: string[];
@@ -249,9 +249,9 @@ export default function PromotionCandidateList({ targetPosition }: CandidateList
           filterMatchMode="contains"
         />
         <Column
-          field="user.createdAt"
-          header="입사일"
-          body={(r) => new Date(r.user.createdAt).toLocaleDateString()}
+          field="user.appointmentDate"
+          header="위촉일"
+          body={(r) => new Date(r.user.appointmentDate).toLocaleDateString()}
           sortable
         />
         <Column
