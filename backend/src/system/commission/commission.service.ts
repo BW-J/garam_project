@@ -908,46 +908,6 @@ export class CommissionService {
   }
 
   /**
-   * (핵심 로직) 증원수수료 자격 검사
-   */
-  private async checkRecruitmentEligibility(
-    userId: number,
-    calculationYearMonth: string, // 'YYYY-MM'
-  ): Promise<boolean> {
-    const user = await this.userRepo.findOne({ where: { userId } });
-    if (!user || !user.isActive) {
-      return false; // 비활성 사용자 자격 없음
-    }
-
-    const calculationDate = new Date(calculationYearMonth + '-01');
-    const oneYearAgo = new Date(calculationDate);
-    oneYearAgo.setFullYear(calculationDate.getFullYear() - 1);
-
-    // 1. [자격 1] 입사 1년 미만
-    if (user.createdAt > oneYearAgo) {
-      return true; // 실적 무관 통과
-    }
-
-    // 2. [자격 2] 입사 1년 초과 (최근 1년 누적 실적 300만원 검사)
-    const twelveMonthsAgoDate = new Date(calculationDate);
-    twelveMonthsAgoDate.setMonth(twelveMonthsAgoDate.getMonth() - 11);
-    const startMonthStr = twelveMonthsAgoDate.toISOString().substring(0, 7); // '2024-12'
-
-    const result = await this.perfDataRepo
-      .createQueryBuilder('perf')
-      .select('SUM(perf.settlementAmount)', 'total')
-      .where('perf.userId = :userId', { userId })
-      .andWhere('perf.yearMonth >= :startMonth', { startMonth: startMonthStr })
-      .andWhere('perf.yearMonth <= :endMonth', {
-        endMonth: calculationYearMonth,
-      })
-      .getRawOne();
-
-    const total = Number(result?.total) || 0;
-    return total >= 3_000_000;
-  }
-
-  /**
    * [재설계] 수당 요약 조회 (요약 테이블 단순 조회)
    */
   async getCommissionSummary(
@@ -1080,44 +1040,6 @@ export class CommissionService {
       if (!appDate) return false;
       return appDate >= finalStartDate && appDate <= targetEndDate;
     });
-  }
-
-  private async findQualifiedNewDownlines(
-    user: User,
-    N: number,
-  ): Promise<User[]> {
-    const targetMonthStr = getNthMonthStr(user.createdAt, N);
-    const targetStartDate = dayjs(targetMonthStr).startOf('month').toDate();
-    const targetEndDate = dayjs(targetMonthStr).endOf('month').toDate();
-
-    const qb = this.closureRepo
-      .createQueryBuilder('closure')
-      .innerJoinAndSelect('closure.descendant', 'member')
-      .where('closure.ancestorId = :userId', { userId: user.userId })
-      .andWhere('closure.depth BETWEEN 1 AND 10');
-
-    if (N === 1 && isCarryOverTarget(user.createdAt)) {
-      const joinMonthStr = getJoinMonthStr(user.createdAt);
-      const joinStartDate = dayjs(joinMonthStr).startOf('month').toDate();
-
-      qb.andWhere(
-        'member.createdAt BETWEEN :joinStartDate AND :targetEndDate',
-        {
-          joinStartDate,
-          targetEndDate,
-        },
-      );
-    } else {
-      qb.andWhere(
-        'member.createdAt BETWEEN :targetStartDate AND :targetEndDate',
-        {
-          targetStartDate,
-          targetEndDate,
-        },
-      );
-    }
-    const results = await qb.getMany();
-    return results.map((r) => r.descendant);
   }
 
   /**
