@@ -67,11 +67,9 @@ export class CreateUserDto {
   @IsBoolean()
   isActive?: boolean;
 
-  @IsOptional()
   @IsDateString()
   joinDate?: Date | null;
 
-  @IsOptional()
   @IsDateString()
   appointmentDate?: Date | null;
 

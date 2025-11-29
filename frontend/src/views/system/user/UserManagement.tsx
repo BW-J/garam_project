@@ -169,7 +169,7 @@ export default function UserManagement() {
           // setContextSelectedUser(null); // 모달 닫을 때 초기화하고 싶다면 주석 해제 (안 해도 무방)
         }}
         style={{ width: '80vw', height: '90vh' }}
-        header={`[${contextSelectedUser?.userNm}] 님 조직도`}
+        header={`[${contextSelectedUser?.userNm}] 님 계보도`}
         maximizable
         modal
       >

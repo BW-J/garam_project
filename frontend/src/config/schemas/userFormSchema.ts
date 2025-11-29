@@ -37,8 +37,18 @@ export const userFormSchema = z.object({
 
   birthDate: z.date().nullable().optional(),
   address: z.string().nullable().optional(),
-  joinDate: z.date().nullable().optional(),
-  appointmentDate: z.date().nullable().optional(),
+  joinDate: z
+    .date()
+    .nullable()
+    .refine((val) => val instanceof Date, {
+      message: '입사일은 올바른 날짜여야 합니다.',
+    }),
+  appointmentDate: z
+    .date()
+    .nullable()
+    .refine((val) => val instanceof Date, {
+      message: '위촉일은 올바른 날짜여야 합니다.',
+    }),
 
   zipCode: z.string().nullable().optional(),
   addressDetail: z.string().nullable().optional(),

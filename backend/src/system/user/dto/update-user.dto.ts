@@ -67,11 +67,9 @@ export class UpdateUserDto {
   @IsDate()
   passwordChangedAt?: Date;
 
-  @IsOptional()
   @IsDateString()
   joinDate?: Date | null;
 
-  @IsOptional()
   @IsDateString()
   appointmentDate?: Date | null;
 

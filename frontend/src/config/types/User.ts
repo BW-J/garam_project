@@ -26,8 +26,8 @@ export interface User {
 
   password?: string;
 
-  joinDate?: Date | string | null;
-  appointmentDate?: Date | string | null;
+  joinDate?: Date | string;
+  appointmentDate?: Date | string;
 
   zipCode?: string;
   addressDetail?: string;

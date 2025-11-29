@@ -4,7 +4,7 @@ import MyMonthlySummary from './MyMonthlySummary';
 
 const Dashboard = () => {
   return (
-    <div className="grid -full">
+    <div className="grid h-full">
       {/* --- [월별 추이 차트] --- */}
       <div className="col-12 lg:col-9 flex">
         <MainChart />
