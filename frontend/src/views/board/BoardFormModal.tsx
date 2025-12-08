@@ -111,7 +111,6 @@ export default function BoardFormModal({
       formData.append('title', data.title);
       formData.append('content', data.content);
       formData.append('isImportant', String(data.isImportant)); // boolean -> string 변환
-
       const newFiles = fileUploadRef.current?.getFiles() || [];
       for (const file of newFiles) {
         formData.append('files', file);

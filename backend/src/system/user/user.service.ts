@@ -1,8 +1,6 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,7 +28,7 @@ import { PositionResponseDto } from '../position/dto/Position-response.dto';
 import { UserPositionHistory } from 'src/core/entities/tb_user_position_history.entity';
 import { Position } from 'src/core/entities/tb_position.entity';
 import dayjs from 'dayjs';
-import { PerformanceData } from 'src/core/entities/tb_performance_data.entity';
+import { Performance } from 'src/core/entities/tb_performance.entity';
 
 @Injectable()
 export class UserService extends BaseService<User> {
@@ -42,8 +40,8 @@ export class UserService extends BaseService<User> {
     @InjectRepository(UserPositionHistory)
     private historyRepo: Repository<UserPositionHistory>,
 
-    @InjectRepository(PerformanceData) // [추가] 실적 조회용
-    private perfRepo: Repository<PerformanceData>,
+    @InjectRepository(Performance) // [추가] 실적 조회용
+    private perfRepo: Repository<Performance>,
     private readonly userPasswordService: UserPasswordService,
     private readonly configService: ConfigService,
     private readonly userClosureService: UserClosureService,
@@ -351,9 +349,29 @@ export class UserService extends BaseService<User> {
    * @returns
    */
   async findAllUser(): Promise<UserResponseDto[]> {
-    const result = await super.findAll({
+    const result = await this.userRepository.find({
       order: { userId: 'ASC' },
       relations: ['position', 'department', 'recommender'],
+      select: {
+        userId: true,
+        loginId: true,
+        userNm: true,
+        cellPhone: true,
+        isActive: true,
+        createdAt: true,
+        position: {
+          positionId: true,
+          positionNm: true,
+        },
+        department: {
+          deptId: true,
+          deptNm: true,
+        },
+        recommender: {
+          userId: true,
+          userNm: true,
+        },
+      },
       withDeleted: true,
     });
 

@@ -6,6 +6,7 @@ import {
   JoinColumn,
   DeleteDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Department } from 'src/core/entities/tb_department.entity';
 import { Position } from 'src/core/entities/tb_position.entity';
@@ -15,6 +16,7 @@ import { UserPasswordHistory } from './tb_user_password_history';
 import { UserClosure } from './tb_user_closure.entity';
 import { UserPositionHistory } from './tb_user_position_history.entity';
 import { Bank } from './tb_bank.entity';
+import { EncryptionTransformer } from 'src/common/utils/encryption.transformer';
 
 @Entity({ name: 'tb_user' })
 export class User extends BaseAuditEntity {
@@ -29,6 +31,18 @@ export class User extends BaseAuditEntity {
 
   @Column({ name: 'user_nm', length: 100 })
   userNm: string;
+
+  @Column({ name: 'resident_id_front', length: 6, nullable: true })
+  residentIdFront?: string;
+
+  @Column({
+    name: 'resident_id_back',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    transformer: new EncryptionTransformer(),
+  })
+  residentIdBack?: string;
 
   // 관계
   @ManyToOne(() => Department, { nullable: true })

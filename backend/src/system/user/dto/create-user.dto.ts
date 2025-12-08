@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -9,6 +10,7 @@ import {
   IsDateString,
   ValidateIf,
   MinLength,
+  Length,
 } from 'class-validator';
 
 const PASSWORD_REGEX =
@@ -30,6 +32,18 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   password: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => (value === '' ? null : value))
+  @Length(6, 6)
+  residentIdFront?: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => (value === '' ? null : value))
+  @Length(7, 7)
+  residentIdBack?: string;
 
   @IsNotEmpty()
   @IsInt()

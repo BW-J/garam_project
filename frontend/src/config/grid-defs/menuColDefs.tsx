@@ -109,6 +109,7 @@ export const getMenuColumns = ({
       expander
       sortable
       filter
+      filterField="menuNm"
       filterPlaceholder="메뉴 검색"
       filterMatchMode="contains"
       style={{ minWidth: '15rem' }}

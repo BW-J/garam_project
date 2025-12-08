@@ -33,14 +33,27 @@ export class BoardService {
     boardType: string,
     dto: any,
     files: Express.Multer.File[],
-    userId: number,
+    currentUser: any,
   ) {
     return this.dataSource.transaction(async (manager) => {
+      // 1. 권한 체크 (삭제와 동일한 권한 사용)
+      const isSuperAdmin = currentUser.isSuperAdmin === true;
+      const userId = currentUser.sub;
+      const canCreate = await this.rolePermissionsService.hasPermission(
+        currentUser.roleIds,
+        boardType,
+        'CREATE', // 'CREATE' 권한 체크
+      );
+
+      if (!isSuperAdmin && !canCreate) {
+        throw new ForbiddenException('게시글을 작성 할 권한이 없습니다.');
+      }
+
       const newBoard = manager.create(Board, {
         boardType,
         title: dto.title,
         content: dto.content,
-        isImportant: dto.isImportant === 'true' || dto.isImportant === true,
+        isImportant: dto.isImportant,
         author: { userId },
         createdBy: userId,
         updatedBy: userId,
@@ -154,8 +167,7 @@ export class BoardService {
       // 2. 게시글 텍스트 정보 업데이트
       board.title = dto.title;
       board.content = dto.content;
-      board.isImportant =
-        dto.isImportant === 'true' || dto.isImportant === true;
+      board.isImportant = dto.isImportant;
       board.updatedBy = currentUser.sub;
       await manager.save(board);
 

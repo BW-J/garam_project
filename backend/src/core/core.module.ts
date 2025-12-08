@@ -11,7 +11,6 @@ import { RolePermissions } from './entities/tb_role_permissions.entity';
 import { UserRoleMap } from './entities/tb_user_role_map.entity';
 import { User } from './entities/tb_user.entity';
 import { CommissionLedger } from './entities/tb_commission_ledger.entity';
-import { PerformanceData } from './entities/tb_performance_data.entity';
 import { Attachment } from './entities/tb_attachment.entity';
 import { Board } from './entities/tb_board.entity';
 import { UserPositionHistory } from './entities/tb_user_position_history.entity';
@@ -31,7 +30,6 @@ import { Performance } from './entities/tb_performance.entity';
       Action,
       Department,
       User,
-      PerformanceData,
       PerformanceDetail,
       Performance,
       CommissionLedger,

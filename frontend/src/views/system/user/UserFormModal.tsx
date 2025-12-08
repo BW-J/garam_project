@@ -23,6 +23,7 @@ import { refinedUserFormSchema, type UserFormData } from 'src/config/schemas/use
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Fieldset } from 'primereact/fieldset';
 import AddressSearchDialog from 'src/components/common/AddressSearchDialog';
+import { ProgressSpinner } from 'primereact/progressspinner';
 
 const RESET_PASSWORD_VALUE = '123456';
 
@@ -33,7 +34,7 @@ interface UserFormModalProps {
   visible: boolean;
   onHide: () => void;
   onSave: () => void;
-  userToEdit: User | null; // null이면 신규 생성
+  userIdToEdit: number | null; // null이면 신규 생성
 }
 
 // 예금주 관계 옵션
@@ -75,15 +76,21 @@ const NEW_USER_DEFAULTS: UserFormData = {
 /**
  * 사용자 생성/수정 모달 컴포넌트
  */
-export default function UserFormModal({ visible, onHide, onSave, userToEdit }: UserFormModalProps) {
+export default function UserFormModal({
+  visible,
+  onHide,
+  onSave,
+  userIdToEdit,
+}: UserFormModalProps) {
   const [positions, setPositions] = useState<Position[]>([]);
   const [userList, setUserList] = useState<User[]>([]);
   const toast = useRef<Toast | null>(null);
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [bankOptions, setBankOptions] = useState<{ label: string; value: string }[]>([]);
   const [showAddressSearch, setShowAddressSearch] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const isNew = !userToEdit;
+  const isNew = userIdToEdit === null;
 
   const { options: deptOptions, loading: _deptLoading } = useTreeSelectData({
     apiUrl: '/system/department',
@@ -106,33 +113,53 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
   // 2. 모달이 열릴 때 폼 데이터 설정 및 관련 데이터 로드
   useEffect(() => {
     if (visible) {
-      if (userToEdit) {
-        reset({
-          isNew: false,
-          userId: userToEdit.userId,
-          loginId: userToEdit.loginId,
-          userNm: userToEdit.userNm,
-          password: '',
-          email: userToEdit.email || '',
-          cellPhone: userToEdit.cellPhone || '',
-          birthDate: userToEdit.birthDate ? new Date(userToEdit.birthDate) : null,
-          address: userToEdit.address || '',
-          deptId: userToEdit.deptId ?? null,
-          positionId: userToEdit.positionId ?? null,
-          recommenderId: userToEdit.recommenderId ?? null,
-          isActive: userToEdit.isActive,
-          joinDate: userToEdit.joinDate ? new Date(userToEdit.joinDate) : null,
-          appointmentDate: userToEdit.appointmentDate ? new Date(userToEdit.appointmentDate) : null,
-          zipCode: userToEdit.zipCode || '',
-          addressDetail: userToEdit.addressDetail || '',
-          bankCode: userToEdit.bankCode || null,
-          accountNumber: userToEdit.accountNumber || '',
-          accountHolder: userToEdit.accountHolder || '',
-          accountRelation: userToEdit.accountRelation || '본인',
-        });
+      if (userIdToEdit != null) {
+        setIsLoading(true);
+        api
+          .get(`/system/users/id/${userIdToEdit}`)
+          .then((res) => {
+            const user = res.data;
+            // 받아온 상세 정보로 폼 리셋
+            reset({
+              isNew: false,
+              userId: user.userId,
+              loginId: user.loginId,
+              userNm: user.userNm,
+              password: '',
+              email: user.email || '',
+              cellPhone: user.cellPhone || '',
+              address: user.address || '',
+              deptId: user.deptId ?? null,
+              positionId: user.positionId ?? null,
+              recommenderId: user.recommenderId ?? null,
+              isActive: user.isActive,
+              joinDate: user.joinDate ? new Date(user.joinDate) : null,
+              appointmentDate: user.appointmentDate ? new Date(user.appointmentDate) : null,
+              zipCode: user.zipCode || '',
+              addressDetail: user.addressDetail || '',
+              bankCode: user.bankCode || null,
+              accountNumber: user.accountNumber || '',
+              accountHolder: user.accountHolder || '',
+              accountRelation: user.accountRelation || '본인',
+              residentIdFront: user.residentIdFront || '',
+              residentIdBack: user.residentIdBack || '',
+            });
+          })
+          .catch((err) => {
+            console.error(err);
+            toast.current?.show({
+              severity: 'error',
+              summary: '로드 실패',
+              detail: '사용자 정보를 불러오지 못했습니다.',
+            });
+            onHide();
+          })
+          .finally(() => setIsLoading(false));
       } else {
+        // 신규 등록 모드: 폼 초기화
         reset(NEW_USER_DEFAULTS);
       }
+
       api
         .get('/system/position')
         .then((res) => setPositions(res.data))
@@ -158,7 +185,7 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
           .catch((err) => console.error('공개키 로드 실패', err));
       }
     }
-  }, [userToEdit, visible, publicKey, reset]);
+  }, [userIdToEdit, visible, publicKey, reset]);
 
   const handleResetPassword = () => {
     confirmDialog({
@@ -168,7 +195,7 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
       acceptLabel: '초기화',
       rejectLabel: '취소',
       accept: async () => {
-        if (!userToEdit || !userToEdit.userId) return;
+        if (!userIdToEdit) return;
         if (!publicKey) {
           toast.current?.show({ severity: 'error', summary: '오류', detail: '암호화 키 오류' });
           return;
@@ -186,7 +213,7 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
 
           // 2. 비밀번호만 업데이트하는 API 호출 (기존 update API 재활용)
           //    다른 필드는 보내지 않고 password만 보냅니다.
-          await api.patch(`/system/users/${userToEdit.userId}`, {
+          await api.patch(`/system/users/${userIdToEdit}`, {
             password: encryptedPassword,
           });
 
@@ -214,6 +241,10 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
     try {
       const payload = { ...data };
 
+      if (payload.residentIdBack && payload.residentIdBack.includes('*')) {
+        delete payload.residentIdBack;
+      }
+
       if (data.joinDate instanceof Date) {
         const offset = data.joinDate.getTimezoneOffset() * 60000;
         payload.joinDate = new Date(data.joinDate.getTime() - offset)
@@ -223,12 +254,6 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
       if (data.appointmentDate instanceof Date) {
         const offset = data.appointmentDate.getTimezoneOffset() * 60000;
         payload.appointmentDate = new Date(data.appointmentDate.getTime() - offset)
-          .toISOString()
-          .split('T')[0] as any;
-      }
-      if (data.birthDate instanceof Date) {
-        const offset = data.birthDate.getTimezoneOffset() * 60000;
-        payload.birthDate = new Date(data.birthDate.getTime() - offset)
           .toISOString()
           .split('T')[0] as any;
       }
@@ -288,10 +313,8 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
   );
 
   const filteredUserList = useMemo(() => {
-    return userList
-      .filter((u) => !u.deletedAt)
-      .filter((u) => isNew || u.userId !== userToEdit?.userId);
-  }, [userList, userToEdit, isNew]);
+    return userList.filter((u) => !u.deletedAt).filter((u) => isNew || u.userId !== userIdToEdit);
+  }, [userList, userIdToEdit, isNew]);
 
   const handleAddressComplete = (data: { zonecode: string; address: string }) => {
     setValue('zipCode', data.zonecode, { shouldDirty: true });
@@ -318,7 +341,12 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
         className="p-fluid"
         footer={dialogFooter}
         onHide={onHide}
+        dismissableMask
       >
+        <div className={`center-loading-overlay ${isLoading ? 'show' : ''}`}>
+          <ProgressSpinner />
+        </div>
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <Fieldset legend="기본 정보" className="mb-4">
             <div className="formgrid grid">
@@ -331,7 +359,6 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
                     <InputText
                       id={field.name}
                       {...field}
-                      disabled={!isNew}
                       className={classNames({ 'p-invalid': fieldState.error })}
                     />
                   )}
@@ -524,27 +551,43 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
 
           <Fieldset legend="인사 및 주소 정보" className="mb-4">
             <div className="formgrid grid">
-              <div className="field col-12 md:col-4">
-                <label htmlFor="birthDate">생년월일</label>
-                <Controller
-                  name="birthDate"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <Calendar
-                      id={field.name}
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      placeholder="YYYY-MM-DD"
-                      dateFormat="yy-mm-dd"
-                      showIcon
-                      className={classNames({ 'p-invalid': fieldState.error })}
-                    />
-                  )}
-                />
-                {errors.birthDate && <small className="p-error">{errors.birthDate.message}</small>}
+              <div className="field col-12 md:col-12">
+                <label>주민등록번호</label>
+                <div className="flex align-items-center gap-2">
+                  <Controller
+                    name="residentIdFront"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <InputText
+                        id={field.name}
+                        {...field}
+                        value={field.value || ''}
+                        className={classNames({ 'p-invalid': fieldState.error })}
+                      />
+                    )}
+                  />
+                  <span>-</span>
+                  <Controller
+                    name="residentIdBack"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <InputText
+                        id={field.name}
+                        {...field}
+                        value={field.value || ''}
+                        className={classNames({ 'p-invalid': fieldState.error })}
+                      />
+                    )}
+                  />
+                </div>
+                {(errors.residentIdFront || errors.residentIdBack) && (
+                  <small className="p-error">
+                    {errors.residentIdFront?.message || errors.residentIdBack?.message}
+                  </small>
+                )}
               </div>
-              <div className="field col-12 md:col-4">
+
+              <div className="field col-12 md:col-6">
                 <label htmlFor="joinDate">입사일</label>
                 <Controller
                   name="joinDate"
@@ -564,7 +607,7 @@ export default function UserFormModal({ visible, onHide, onSave, userToEdit }: U
                 />
                 {errors.joinDate && <small className="p-error">{errors.joinDate.message}</small>}
               </div>
-              <div className="field col-12 md:col-4">
+              <div className="field col-12 md:col-6">
                 <label htmlFor="appointmentDate">위촉일</label>
                 <Controller
                   name="appointmentDate"

@@ -4,16 +4,15 @@ import { Button } from 'primereact/button';
 
 interface SummaryColumnProps {
   mode: 'MANAGE' | 'MY';
-  //   commissionType: 'RECRUITMENT' | 'PROMOTION_BONUS';
-  //   title: string;
   onAdjust: (rowData: CommissionSummary) => void;
+  isEditable: boolean;
 }
 
 const currencyBody = (rowData: CommissionSummary) => {
   return Number(rowData.totalAmount).toLocaleString('ko-KR') + ' 원';
 };
 
-export const getCommissionSummaryColumns = ({ mode, onAdjust }: SummaryColumnProps) => {
+export const getCommissionSummaryColumns = ({ mode, onAdjust, isEditable }: SummaryColumnProps) => {
   const columns = [
     <Column
       key="yearMonth"
@@ -52,7 +51,7 @@ export const getCommissionSummaryColumns = ({ mode, onAdjust }: SummaryColumnPro
       style={{ fontWeight: 'bold', minWidth: '8rem', textAlign: 'right' }}
     />,
   );
-  if (mode === 'MANAGE') {
+  if (mode === 'MANAGE' && isEditable) {
     columns.push(
       <Column
         key="actions"

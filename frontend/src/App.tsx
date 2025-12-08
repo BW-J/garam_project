@@ -11,7 +11,6 @@ import 'primeflex/primeflex.css';
 import './scss/layout_fixed.scss';
 import './scss/custom.scss';
 import './scss/custom-sidebar.scss';
-
 import { PrimeReactProvider } from 'primereact/api';
 import { useSessionTimeout } from './hooks/useSessionTimeout';
 import ForcePasswordChangeModal from './views/profile/ForcePasswordChangeModal';

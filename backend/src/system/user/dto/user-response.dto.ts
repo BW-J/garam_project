@@ -1,4 +1,4 @@
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { Department } from 'src/core/entities/tb_department.entity';
 import { Position } from 'src/core/entities/tb_position.entity';
 import { User } from 'src/core/entities/tb_user.entity';
@@ -38,4 +38,17 @@ export class UserResponseDto {
   @Expose() accountNumber?: string;
   @Expose() accountHolder?: string;
   @Expose() accountRelation?: string;
+
+  @Expose()
+  residentIdFront?: string;
+
+  @Expose()
+  @Transform(({ value }) => {
+    // 값이 있으면 첫 글자만 남기고 나머지 * 처리
+    if (value && value.length > 0) {
+      return value.charAt(0) + '******';
+    }
+    return value;
+  })
+  residentIdBack?: string;
 }

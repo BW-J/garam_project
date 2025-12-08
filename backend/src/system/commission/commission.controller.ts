@@ -11,7 +11,10 @@ import {
   ParseIntPipe,
   BadRequestException,
   Req,
+  Delete,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CommissionService } from './commission.service';
 import { UploadPerformanceDto } from './dto/upload-performance.dto';
@@ -19,13 +22,15 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { Permission } from 'src/common/decorators/permession.decorator';
 import { AuditEntity, AuditKey } from 'src/common/decorators/audit.decorator';
 import { Activity } from 'src/common/decorators/activity.decorator';
-import { UpdatePerformanceDto } from './dto/update-performance.dto';
+import { UpdateIqaDto } from './dto/update-iqa.dto';
 import { CalculateCommissionDto } from './dto/calculate-commission.dto';
 import { CommissionQueryDto } from './dto/query-commission.dto';
 import type { AuthorizedRequest } from 'src/types/http';
 import { AdjustCommissionDto } from './dto/adjust-commission.dto';
+import { UpdatePerformanceDetailDto } from './dto/update-performance-detail.dto';
+import { AdjustPerformanceDto } from './dto/adjust-performance.dto';
 @Controller('system/commission')
-@AuditEntity('PERFORMANCE_DATA') // 감사 로그용
+@AuditEntity('PERFORMANCE') // 감사 로그용
 @AuditKey('id')
 export class CommissionController {
   constructor(private readonly commissionService: CommissionService) {}
@@ -47,17 +52,106 @@ export class CommissionController {
     );
   }
 
-  /** 2. (관리자) 실적 수정 */
-  @Patch('performance/:id')
+  /**
+   * 엑셀 다운로드 API
+   */
+  @Get('download/excel')
+  @Permission('COMMISSION_MGMT', 'VIEW')
+  @Activity('수당 내역 엑셀 다운로드')
+  async downloadExcel(
+    @Query('yearMonth') yearMonth: string,
+    @Query('commissionType') commissionType: string,
+    @Res() res: Response,
+  ) {
+    if (!yearMonth || !commissionType) {
+      throw new BadRequestException('필수 파라미터가 누락되었습니다.');
+    }
+
+    const buffer = await this.commissionService.downloadCommissionExcel(
+      yearMonth,
+      commissionType,
+    );
+
+    const fileName = `Commission_${commissionType}_${yearMonth}.xlsx`;
+
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
+      'Content-Length': buffer.length,
+    });
+
+    res.end(buffer);
+  }
+
+  /** 2. (관리자) 실적 iqa 수정 */
+  @Patch('performance/:id/iqa')
   @Permission('COMMISSION_MGMT', 'UPDATE')
-  @Activity('실적 데이터 수정')
-  async updatePerformance(
+  @AuditEntity('tb_performance')
+  @AuditKey('id')
+  @Activity('IQA 수정')
+  async updateIqa(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdatePerformanceDto,
+    @Body() dto: UpdateIqaDto,
     @CurrentUser() user: any,
     @Req() req: AuthorizedRequest,
   ) {
-    return this.commissionService.updatePerformanceData(id, dto, user, req);
+    return this.commissionService.updateIqa(id, dto, user, req);
+  }
+
+  /**
+   * 실적 상세 내역 수정
+   * PATCH /api/system/commission/detail/:detailId
+   */
+  @Patch('detail/:detailId')
+  @Permission('COMMISSION_MGMT', 'UPDATE')
+  @AuditEntity('tb_performance_detail')
+  @AuditKey('detailId')
+  @Activity('실적 상세 수정')
+  async updateDetail(
+    @Param('detailId', ParseIntPipe) detailId: number,
+    @Body() dto: UpdatePerformanceDetailDto,
+    @CurrentUser() user: any,
+    @Req() req: AuthorizedRequest,
+  ) {
+    return this.commissionService.updatePerformanceDetail(
+      detailId,
+      dto,
+      user,
+      req,
+    );
+  }
+
+  /**
+   * 실적 조정 내역 추가
+   * POST /api/system/commission/adjustment
+   */
+  @Post('adjustment')
+  @Permission('COMMISSION_MGMT', 'UPDATE')
+  @AuditEntity('tb_performance_detail')
+  @Activity('실적 조정 추가')
+  async addAdjustment(
+    @Body() dto: AdjustPerformanceDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.commissionService.addPerformanceAdjustment(dto, user);
+  }
+
+  /**
+   * 실적 상세(조정) 내역 삭제
+   * DELETE /api/system/commission/detail/:detailId
+   */
+  @Delete('detail/:detailId')
+  @Permission('COMMISSION_MGMT', 'DELETE')
+  @AuditEntity('tb_performance_detail')
+  @AuditKey('detailId')
+  @Activity('실적 상세 삭제')
+  async deleteDetail(
+    @Param('detailId', ParseIntPipe) detailId: number,
+    @CurrentUser() user: any,
+    @Req() req: AuthorizedRequest,
+  ) {
+    return this.commissionService.deletePerformanceDetail(detailId, user, req);
   }
 
   /** 3. (관리자) 수당 계산 실행 */
@@ -121,12 +215,33 @@ export class CommissionController {
    */
   @Post('manage/adjust')
   @Permission('COMMISSION_MGMT', 'UPDATE')
+  @AuditEntity('tb_commission_ledger')
+  @AuditKey('id')
   @Activity('수당 금액 조정')
   async adjustCommissionAmount(
     @Body() dto: AdjustCommissionDto,
     @CurrentUser() user: any,
+    @Req() req: AuthorizedRequest,
   ) {
-    return this.commissionService.adjustCommissionAmount(dto, user);
+    return this.commissionService.adjustCommissionAmount(dto, user, req);
+  }
+
+  /** 수당 조정 내역 삭제 */
+  @Delete('manage/adjust/:historyId')
+  @Permission('COMMISSION_MGMT', 'DELETE')
+  @AuditEntity('tb_commission_ledger_history')
+  @AuditKey('historyId')
+  @Activity('수당 조정 내역 삭제')
+  async deleteCommissionAdjustment(
+    @Param('historyId', ParseIntPipe) historyId: number,
+    @CurrentUser() user: any,
+    @Req() req: AuthorizedRequest,
+  ) {
+    return this.commissionService.deleteCommissionAdjustment(
+      historyId,
+      user,
+      req,
+    );
   }
 
   /** (사용자용) 실적 조회 */
@@ -139,6 +254,20 @@ export class CommissionController {
   ) {
     // 일반 사용자가 자기 ID가 아닌 것을 조회하려 할 때, 서비스에서 권한을 막음
     return this.commissionService.getPerformanceDataForUser(query, user.sub);
+  }
+
+  /** (사용자용) 하위 사용자 실적 조회 */
+  @Get('my/downline-performance')
+  @Permission('MY_PERFORMANCE', 'VIEW') // 권한은 내 실적 조회와 동일하게 가거나 별도 분리
+  @Activity('하위 실적 조회')
+  async getMyDownlinePerformance(
+    @Query() query: CommissionQueryDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.commissionService.getDownlinePerformanceDataForUser(
+      query,
+      user.sub,
+    );
   }
 
   /** (사용자용) 증원수수료 상세내역 조회 */

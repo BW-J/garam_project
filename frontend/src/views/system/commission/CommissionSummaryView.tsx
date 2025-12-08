@@ -7,7 +7,7 @@ import { Calendar } from 'primereact/calendar';
 import { ReusableDataTable } from 'src/components/grid/ReusableDataTable';
 import type { CommissionSummary } from 'src/config/types/Commission';
 import api from 'src/api/axios';
-import { getDefaultPreviousMonth, toLocalYearMonth } from 'src/utils/dateUtils';
+import { getDefaultPreviousMonth, isEditablePeriod, toLocalYearMonth } from 'src/utils/dateUtils';
 import CommissionDetailModal from './CommissionDetailModal';
 import AdjustmentAmountModal from './AdjustmentAmountModal';
 import { getCommissionSummaryColumns } from 'src/config/grid-defs/commissionSummaryColDefs';
@@ -101,6 +101,51 @@ export default function CommissionSummaryView({
     loadSummary(selectedMonth); // 테이블 새로고침
   };
 
+  const handleDownloadExcel = async () => {
+    if (!selectedMonth) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: '월 선택 필요',
+        detail: '다운로드할 월을 선택해주세요.',
+      });
+      return;
+    }
+
+    try {
+      const response = await api.get('/system/commission/download/excel', {
+        params: {
+          yearMonth: selectedMonth,
+          commissionType: commissionType,
+        },
+        responseType: 'blob', // 파일 다운로드 필수 옵션
+      });
+
+      const blob = response as unknown as Blob;
+
+      // Blob을 파일로 저장
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${title.replace(/\s/g, '_')}_${selectedMonth}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.current?.show({ severity: 'success', summary: '다운로드 시작' });
+    } catch (e) {
+      console.error(e);
+      toast.current?.show({
+        severity: 'error',
+        summary: '다운로드 실패',
+        detail: '파일 생성 중 오류가 발생했습니다.',
+      });
+    }
+  };
+
+  const hasData = summaryRows.length > 0;
+
   const cardHeader = (
     <div className="flex justify-content-between align-items-center pt-3 px-3 flex-wrap gap-2">
       <span className="p-card-title">{title}</span>
@@ -123,13 +168,28 @@ export default function CommissionSummaryView({
           className="p-button-sm"
           outlined
         />
+        {mode === 'MANAGE' && selectedMonth && (
+          <Button
+            label="Excel 다운로드"
+            icon="pi pi-file-excel"
+            className="p-button-success p-button-sm"
+            onClick={handleDownloadExcel}
+            disabled={!selectedMonth || !hasData}
+          />
+        )}
       </div>
     </div>
   );
 
+  const isEditable = useMemo(() => {
+    // MANAGE 모드에서는 선택된 월 기준으로 판단
+    if (mode === 'MANAGE') return isEditablePeriod(selectedMonth);
+    return false; // MY 모드거나 월 선택이 없으면 수정 불가
+  }, [mode, selectedMonth]);
+
   const summaryCols = useMemo(
-    () => getCommissionSummaryColumns({ mode, onAdjust: handleAdjustClick }),
-    [mode, handleAdjustClick], // onAdjust는 useCallback으로 감싸면 더 최적화됨
+    () => getCommissionSummaryColumns({ mode, onAdjust: handleAdjustClick, isEditable }),
+    [mode, handleAdjustClick, isEditable], // onAdjust는 useCallback으로 감싸면 더 최적화됨
   );
 
   return (
@@ -142,12 +202,16 @@ export default function CommissionSummaryView({
         mode={mode}
         commissionType={commissionType}
         title={title}
+        isEditable={isEditable}
+        onSaveSuccess={() => loadSummary(selectedMonth)}
       />
       <AdjustmentAmountModal
         visible={adjustmentModalVisible}
-        ledgerData={selectedRow}
         onHide={() => setAdjustmentModalVisible(false)}
         onSave={onAdjustmentSaved}
+        targetType="LEDGER"
+        targetId={selectedRow?.ledgerId || null}
+        targetName={selectedRow ? `${selectedRow.userNm} (${selectedRow.yearMonth})` : ''}
       />
       <Card header={cardHeader} className="card-flex-full">
         {loading ? (

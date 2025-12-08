@@ -68,10 +68,6 @@ export default function ProfilePage() {
           password: '', // 비밀번호 필드는 항상 비워둠
           zipCode: user.zipCode || '',
           addressDetail: user.addressDetail || '',
-          bankCode: user.bankCode || '',
-          accountNumber: user.accountNumber || '',
-          accountHolder: user.accountHolder || '',
-          accountRelation: user.accountRelation || '본인',
         });
 
         api.get('/system/bank').then((res) => {
@@ -271,16 +267,23 @@ export default function ProfilePage() {
               </Fieldset>
               <Fieldset legend="인사 및 주소 정보" className="mb-4">
                 <div className="p-fluid formgrid grid">
-                  <div className="field col-12 md:col-4">
-                    <label htmlFor="birthDate">생년월일</label>
-                    <Calendar
-                      id="birthDate"
-                      value={fullUser.birthDate ? new Date(fullUser.birthDate) : null}
-                      dateFormat="yy-mm-dd"
-                      disabled
-                    />
+                  <div className="field col-12 md:col-12">
+                    <label>주민등록번호</label>
+                    <div className="flex align-items-center gap-2">
+                      <InputText
+                        id="residentIdFront"
+                        value={fullUser.residentIdFront || ''}
+                        disabled
+                      />
+                      <span>-</span>
+                      <InputText
+                        id="residentIdBack"
+                        value={fullUser.residentIdBack || ''}
+                        disabled
+                      />
+                    </div>
                   </div>
-                  <div className="field col-12 md:col-4">
+                  <div className="field col-12 md:col-6">
                     <label htmlFor="joinDate">입사일</label>
                     <Calendar
                       id="joinDate"
@@ -289,7 +292,7 @@ export default function ProfilePage() {
                       disabled
                     />
                   </div>
-                  <div className="field col-12 md:col-4">
+                  <div className="field col-12 md:col-6">
                     <label htmlFor="appointmentDate">위촉일</label>
                     <Calendar
                       id="appointmentDate"

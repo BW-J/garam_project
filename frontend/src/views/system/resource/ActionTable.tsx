@@ -15,6 +15,9 @@ export default function ActionTable() {
   const toast = useRef<Toast | null>(null);
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     isActive: { value: true, matchMode: 'equals' },
+
+    actionNm: { value: null, matchMode: 'contains' },
+    actionCd: { value: null, matchMode: 'contains' },
   });
 
   const authorizedMenu = useAuthStore((state) => state.authorizedMenu);

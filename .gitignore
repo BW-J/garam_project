@@ -34,6 +34,7 @@ tmp/
 backend/node_modules/
 backend/dist/
 backend/.cache/
+backend/script/
 
 # React (frontend)
 frontend/node_modules/

@@ -20,6 +20,20 @@ export const userFormSchema = z.object({
 
   password: z.string().nullable().optional(), // 비밀번호 필드는 기본적으로 선택 사항
 
+  residentIdFront: z
+    .string()
+    .regex(/^\d{6}$/, '앞자리는 6자리 숫자여야 합니다.')
+    .nullable()
+    .optional()
+    .or(z.literal('')),
+
+  residentIdBack: z
+    .string()
+    .regex(/^(\d{7}|[1-4]\*{6})$/, '뒷자리는 7자리 숫자여야 합니다.')
+    .nullable()
+    .optional()
+    .or(z.literal('')),
+
   deptId: z
     .number()
     .nullable()

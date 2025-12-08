@@ -48,7 +48,6 @@ export class BoardController {
 
   @Post()
   @Activity('게시글 작성')
-  @Permission('BOARD_MGMT', 'CREATE')
   @UseInterceptors(FilesInterceptor('files', 5)) // 최대 5개
   async create(
     @Param('boardType') boardType: string,
@@ -57,7 +56,7 @@ export class BoardController {
     files: Express.Multer.File[],
     @CurrentUser() user: any,
   ) {
-    return this.boardService.createBoard(boardType, dto, files, user.sub);
+    return this.boardService.createBoard(boardType, dto, files, user);
   }
 
   @Get(':boardId')

@@ -1,6 +1,6 @@
-import { IsOptional, IsNumber, IsPositive, IsInt } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class UpdatePerformanceDto {
+export class UpdatePerformanceDetailDto {
   @IsOptional()
   @IsNumber()
   insurancePremium?: number;
@@ -18,6 +18,6 @@ export class UpdatePerformanceDto {
   lapse?: number;
 
   @IsOptional()
-  @IsNumber()
-  iqaMaintenanceRate?: number;
+  @IsString()
+  note?: string;
 }

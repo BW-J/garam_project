@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class CommissionQueryDto {
   @IsOptional()
@@ -16,4 +23,9 @@ export class CommissionQueryDto {
 
   @IsOptional()
   commissionType?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  id?: number;
 }

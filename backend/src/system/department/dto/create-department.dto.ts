@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 
 export class CreateDepartmentDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(50)
   deptCd: string | null;

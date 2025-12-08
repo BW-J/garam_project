@@ -54,7 +54,7 @@ export default function BoardDetailModal({
   const showEditButton = useMemo(() => {
     if (!user || !boardData) return false;
     if (user.isSuperAdmin) return true; // 1. 슈퍼어드민
-    if (canEdit) return true;
+    //if (canEdit) return true;
     if (boardData.author?.userId === user.userId) return true; // 3. 작성자
     return false;
   }, [user, boardData, canEdit]);
@@ -62,7 +62,7 @@ export default function BoardDetailModal({
   const showDeleteButton = useMemo(() => {
     if (!user || !boardData) return false;
     if (user.isSuperAdmin) return true; // 1. 슈퍼어드민
-    if (canDelete) return true;
+    //if (canDelete) return true;
     if (boardData.author?.userId === user.userId) return true; // 3. 작성자
     return false;
   }, [user, boardData, canDelete]);

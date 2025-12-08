@@ -12,6 +12,8 @@ export interface User {
   cellPhone?: string | null;
   isActive: boolean;
   deletedAt?: Date | null;
+  residentIdFront?: string;
+  residentIdBack?: string;
 
   // 관계 데이터 (조인 시 포함)
   department?: Department | null;

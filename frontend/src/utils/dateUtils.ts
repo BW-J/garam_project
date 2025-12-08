@@ -14,3 +14,22 @@ export const getDefaultPreviousMonth = () => {
   const month = String(prevDate.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
 };
+
+export const isEditablePeriod = (yearMonth: string | undefined | null): boolean => {
+  if (!yearMonth) return false;
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 1~12
+
+  // 지난 달 계산
+  let prevYear = currentYear;
+  let prevMonth = currentMonth - 1;
+  if (prevMonth === 0) {
+    prevMonth = 12;
+    prevYear -= 1;
+  }
+
+  const target = `${prevYear}-${String(prevMonth).padStart(2, '0')}`;
+  return yearMonth === target;
+};

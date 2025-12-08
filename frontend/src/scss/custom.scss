@@ -277,3 +277,44 @@
 .header-right .p-column-header-content {
   justify-content: flex-end !important;
 }
+
+/* 스피너 오버레이 */
+.center-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.6);
+
+  opacity: 0;
+  pointer-events: none; /* 안 보일 때 클릭 방지 x */
+  transition: opacity 0.25s ease-in-out;
+  z-index: 9999;
+}
+
+.center-loading-overlay.show {
+  opacity: 1;
+  pointer-events: auto; /* 보일 때만 클릭 막기 */
+}
+
+.p-organizationchart .p-organizationchart-table tr td {
+  vertical-align: top !important;
+}
+
+/* 2. (핵심) 칸 안의 내부 테이블이 억지로 높이를 100%로 채우지 못하게 막음 */
+.p-organizationchart .p-organizationchart-table {
+  height: auto !important;
+}
+
+/* 1. 노드 너비 고정 */
+.p-organizationchart-node-content {
+  width: 120px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
+  text-align: center;
+}

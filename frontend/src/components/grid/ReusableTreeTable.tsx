@@ -138,7 +138,7 @@ export const ReusableTreeTable = ({
         {...paginatorProps}
         {...rest}
         filters={filters}
-        onFilter={onFilter}
+        onFilter={(e) => onFilter(e.filters as unknown as TreeTableFilterMeta)}
         // scrollable={true}
         //scrollHeight={scrollHeight}
       >

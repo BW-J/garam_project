@@ -6,10 +6,9 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Toast } from 'primereact/toast';
 import { useForm, Controller } from 'react-hook-form';
 import api from 'src/api/axios';
-import type { CommissionSummary } from 'src/config/types/Commission';
 
-interface AdjustmentAmountFormData {
-  adjustmentAmount: number | null;
+interface AdjustmentFormData {
+  amount: number | null;
   reason: string;
 }
 
@@ -17,14 +16,20 @@ interface AdjustmentAmountModalProps {
   visible: boolean;
   onHide: () => void;
   onSave: () => void;
-  ledgerData: CommissionSummary | null;
+
+  // [수정] 타겟 정보 (type에 따라 ID 필드가 달라짐)
+  targetType: 'LEDGER' | 'PERFORMANCE';
+  targetId: number | null;
+  targetName?: string; // 모달 제목용 (홍길동 - 2024-10)
 }
 
 export default function AdjustmentAmountModal({
   visible,
   onHide,
   onSave,
-  ledgerData,
+  targetType,
+  targetId,
+  targetName,
 }: AdjustmentAmountModalProps) {
   const toast = useRef<Toast | null>(null);
 
@@ -33,28 +38,34 @@ export default function AdjustmentAmountModal({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<AdjustmentAmountFormData>({
-    defaultValues: {
-      adjustmentAmount: null,
-      reason: '',
-    },
+  } = useForm<AdjustmentFormData>({
+    defaultValues: { amount: null, reason: '' },
   });
 
   useEffect(() => {
-    if (!visible) {
-      reset(); // 모달 닫힐 때 폼 초기화
-    }
+    if (!visible) reset();
   }, [visible, reset]);
 
-  const onSubmit = async (data: AdjustmentAmountFormData) => {
-    if (!ledgerData) return;
+  const onSubmit = async (data: AdjustmentFormData) => {
+    if (!targetId || !data.amount) return;
 
     try {
-      await api.post('/system/commission/manage/adjust', {
-        ledgerId: ledgerData.ledgerId,
-        adjustmentAmount: data.adjustmentAmount,
-        reason: data.reason,
-      });
+      if (targetType === 'LEDGER') {
+        // 1. 수당(Ledger) 조정 API 호출
+        await api.post('/system/commission/manage/adjust', {
+          ledgerId: targetId,
+          adjustmentAmount: data.amount,
+          reason: data.reason,
+        });
+      } else {
+        // 2. 실적(Performance) 조정 API 호출
+        await api.post('/system/commission/adjustment', {
+          performanceId: targetId,
+          amount: data.amount,
+          reason: data.reason,
+        });
+      }
+
       toast.current?.show({ severity: 'success', summary: '조정 완료' });
       onSave();
       onHide();
@@ -67,41 +78,24 @@ export default function AdjustmentAmountModal({
     }
   };
 
-  const dialogFooter = (
-    <>
-      <Button label="취소" icon="pi pi-times" outlined onClick={onHide} />
-      <Button
-        label="조정 저장"
-        icon="pi pi-check"
-        onClick={handleSubmit(onSubmit)}
-        loading={isSubmitting}
-      />
-    </>
-  );
-
-  const header = ledgerData
-    ? `[${ledgerData.userNm} - ${ledgerData.yearMonth}] 금액 조정`
-    : '금액 조정';
-
   return (
     <Dialog
       visible={visible}
       style={{ width: '30rem' }}
-      header={header}
+      header={`금액 조정 ${targetName ? `(${targetName})` : ''}`}
       modal
-      footer={dialogFooter}
       onHide={onHide}
     >
       <Toast ref={toast} />
-      <div className="formgrid grid pt-3">
-        {/* 조정 금액 */}
+      <form onSubmit={handleSubmit(onSubmit)} className="formgrid grid pt-3">
+        {/* ... (입력 폼 내용은 기존과 동일) ... */}
         <div className="field col-12">
-          <label htmlFor="adjustmentAmount">조정 금액 * &nbsp; </label>
+          <label htmlFor="amount">조정 금액 *</label>
           <Controller
-            name="adjustmentAmount"
+            name="amount"
             control={control}
             rules={{
-              required: '조정 금액을 입력하세요.',
+              required: '금액을 입력하세요.',
               validate: (v) => (v != null && v !== 0) || '0원은 입력할 수 없습니다.',
             }}
             render={({ field }) => (
@@ -109,37 +103,32 @@ export default function AdjustmentAmountModal({
                 id={field.name}
                 value={field.value}
                 onValueChange={(e) => field.onChange(e.value)}
-                mode="decimal"
-                placeholder="예: 100000 (추가) 또는 -50000 (차감)"
-                className={errors.adjustmentAmount ? 'p-invalid' : ''}
+                mode="currency"
+                currency="KRW"
+                locale="ko-KR"
+                placeholder="-50000"
+                className={errors.amount ? 'p-invalid w-full' : 'w-full'}
               />
             )}
           />
-          {errors.adjustmentAmount && (
-            <small className="p-error">{errors.adjustmentAmount.message}</small>
-          )}
         </div>
-
-        {/* 조정 사유 */}
         <div className="field col-12">
-          <label htmlFor="reason">조정 사유 * &nbsp;</label>
+          <label htmlFor="reason">조정 사유 *</label>
           <Controller
             name="reason"
             control={control}
-            rules={{ required: '조정 사유를 입력하세요.' }}
+            rules={{ required: '사유를 입력하세요.' }}
             render={({ field }) => (
-              <InputText
-                id={field.name}
-                value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                placeholder="조정 사유 입력 (예: 이벤트 추가 지급)"
-                className={errors.reason ? 'p-invalid' : ''}
-              />
+              <InputText {...field} className={errors.reason ? 'p-invalid w-full' : 'w-full'} />
             )}
           />
-          {errors.reason && <small className="p-error">{errors.reason.message}</small>}
         </div>
-      </div>
+
+        <div className="col-12 flex justify-content-end gap-2 mt-3">
+          <Button label="취소" icon="pi pi-times" outlined onClick={onHide} type="button" />
+          <Button label="저장" icon="pi pi-check" type="submit" loading={isSubmitting} />
+        </div>
+      </form>
     </Dialog>
   );
 }

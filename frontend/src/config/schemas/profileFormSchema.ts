@@ -19,18 +19,18 @@ export const profileFormSchema = z
 
     cellPhone: z.string().nullable().optional().or(z.literal('')),
 
-    birthDate: z.date().nullable().optional(),
+    //birthDate: z.date().nullable().optional(),
     address: z.string().nullable().optional(),
-    joinDate: z.date().nullable().optional(),
-    appointmentDate: z.date().nullable().optional(),
+    //joinDate: z.date().nullable().optional(),
+    //appointmentDate: z.date().nullable().optional(),
 
     zipCode: z.string().nullable().optional(),
     addressDetail: z.string().nullable().optional(),
 
-    bankCode: z.string().nullable().optional(),
-    accountNumber: z.string().nullable().optional(),
-    accountHolder: z.string().nullable().optional(),
-    accountRelation: z.string().nullable().optional(),
+    // bankCode: z.string().nullable().optional(),
+    // accountNumber: z.string().nullable().optional(),
+    // accountHolder: z.string().nullable().optional(),
+    // accountRelation: z.string().nullable().optional(),
 
     // 비밀번호 (선택)
     password: z.string().nullable().optional(),

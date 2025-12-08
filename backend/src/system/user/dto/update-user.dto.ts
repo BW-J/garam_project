@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsOptional,
   IsString,
@@ -9,6 +10,7 @@ import {
   IsDateString,
   ValidateIf,
   MinLength,
+  Length,
 } from 'class-validator';
 export class UpdateUserDto {
   @IsOptional()
@@ -26,6 +28,18 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   password?: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => (value === '' ? null : value))
+  @Length(6, 6)
+  residentIdFront?: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => (value === '' ? null : value))
+  @Length(7, 7)
+  residentIdBack?: string;
 
   @IsOptional()
   @IsInt()
@@ -67,9 +81,11 @@ export class UpdateUserDto {
   @IsDate()
   passwordChangedAt?: Date;
 
+  @IsOptional()
   @IsDateString()
   joinDate?: Date | null;
 
+  @IsOptional()
   @IsDateString()
   appointmentDate?: Date | null;
 

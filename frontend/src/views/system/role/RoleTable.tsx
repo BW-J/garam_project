@@ -20,6 +20,9 @@ export default function RoleTable({ selectedRole, setSelectedRole }: RoleTablePr
   const toast = useRef<Toast | null>(null);
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     isActive: { value: true, matchMode: 'equals' },
+
+    roleNm: { value: null, matchMode: 'contains' },
+    roleCd: { value: null, matchMode: 'contains' },
   });
 
   const authorizedMenu = useAuthStore((state) => state.authorizedMenu);

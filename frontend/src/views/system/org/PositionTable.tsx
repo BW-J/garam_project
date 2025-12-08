@@ -15,7 +15,22 @@ export default function PositionTable() {
   const toast = useRef<Toast | null>(null);
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     isActive: { value: true, matchMode: 'equals' },
+    positionNm: { value: null, matchMode: 'contains' },
+    positionCd: { value: null, matchMode: 'contains' },
   });
+
+  const onFilterChange = (e: { filters: DataTableFilterMeta }) => {
+    // e.filters 안에 undefined나 null이 있는 필드 제거
+    const cleanFilters: DataTableFilterMeta = {};
+
+    Object.entries(e.filters).forEach(([key, val]) => {
+      if (val !== undefined && val !== null) {
+        cleanFilters[key] = val;
+      }
+    });
+
+    setFilters(cleanFilters);
+  };
 
   const authorizedMenu = useAuthStore((state) => state.authorizedMenu);
   const permissionSet = useMemo(() => {
@@ -103,7 +118,7 @@ export default function PositionTable() {
             defaultRows={10}
             scrollHeight="flex"
             filters={filters}
-            onFilter={(e) => setFilters(e.filters)}
+            onFilter={onFilterChange}
           >
             {posCols}
           </ReusableDataTable>

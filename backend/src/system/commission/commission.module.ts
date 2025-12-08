@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommissionLedger } from 'src/core/entities/tb_commission_ledger.entity';
-import { PerformanceData } from 'src/core/entities/tb_performance_data.entity';
+import { Performance } from 'src/core/entities/tb_performance.entity';
 import { UserModule } from '../user/user.module';
 
 import { CommissionService } from './commission.service';
@@ -12,11 +12,13 @@ import { UserClosure } from 'src/core/entities/tb_user_closure.entity';
 import { PromotionModule } from '../promotion/promotion.module';
 import { UserPositionHistory } from 'src/core/entities/tb_user_position_history.entity';
 import { CommissionLedgerHistory } from 'src/core/entities/tb_commission_ledger_history.entity';
+import { PerformanceDetail } from 'src/core/entities/tb_performance_detail.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      PerformanceData,
+      Performance,
+      PerformanceDetail,
       CommissionLedger,
       CommissionLedgerHistory,
       User,

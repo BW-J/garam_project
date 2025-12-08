@@ -222,6 +222,7 @@ export default function GenealogyChart({
         className="genealogy-full-modal"
         style={{ width: '90vw', height: '90vh' }}
         contentStyle={{ height: 'calc(100% - 50px)', overflow: 'hidden' }}
+        dismissableMask
       >
         {loadingFull && (
           <div className="text-center p-4 flex align-items-center justify-content-center h-full">

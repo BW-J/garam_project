@@ -1,25 +1,30 @@
 import type { User } from './User';
 
-/**
- * 실적 데이터 (tb_performance_data)
- */
-export interface PerformanceData {
-  id: number;
-  userId: number;
-  yearMonth: string; // 'YYYY-MM'
+// 실적 상세
+export interface PerformanceDetail {
+  detailId: number;
+  performanceId: number;
+  category: 'BELOW_15' | 'ABOVE_15' | 'ADJUSTMENT';
   insurancePremium: number;
   withdrawal: number;
   cancellation: number;
   lapse: number;
-  iqaMaintenanceRate: number; // IQA 유지율
-  settlementAmount: number; // 정산금액
-  truncatedAmount: number; // 절삭금액
-  isActive: boolean;
-  createdBy: number;
-  updatedBy: number;
+  calculatedAmount: number;
+  note?: string;
+  updatedAt?: string;
+}
 
-  // JOIN된 사용자 정보 (API 응답 시)
+//  실적 원장 (PerformanceData -> Performance)
+export interface Performance {
+  id: number;
+  userId: number;
+  yearMonth: string;
+  iqaMaintenanceRate: number;
+  settlementAmount: number;
+  truncatedAmount: number;
+  isActive: boolean;
   user?: User;
+  details?: PerformanceDetail[]; // Join된 상세
 }
 
 /**

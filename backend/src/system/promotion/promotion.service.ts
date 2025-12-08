@@ -8,7 +8,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In, LessThan, IsNull } from 'typeorm';
 import { User } from 'src/core/entities/tb_user.entity';
-import { PerformanceData } from 'src/core/entities/tb_performance_data.entity';
 import { UserClosure } from 'src/core/entities/tb_user_closure.entity';
 import { Position } from 'src/core/entities/tb_position.entity';
 import { UserPositionHistory } from 'src/core/entities/tb_user_position_history.entity';
@@ -18,6 +17,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { getEffectiveStartDate } from 'src/common/utils/business-date.util';
 import { PositionCode } from 'src/common/constants/position-code.enum';
+import { Performance } from 'src/core/entities/tb_performance.entity';
 
 @Injectable()
 export class PromotionService {
@@ -25,8 +25,8 @@ export class PromotionService {
 
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(PerformanceData)
-    private perfRepo: Repository<PerformanceData>,
+    @InjectRepository(Performance)
+    private perfRepo: Repository<Performance>,
     @InjectRepository(UserClosure) private closureRepo: Repository<UserClosure>,
     @InjectRepository(Position) private posRepo: Repository<Position>,
     @InjectRepository(UserPositionHistory)

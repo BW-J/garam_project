@@ -19,9 +19,17 @@ import GenealogyChart from 'src/views/dashboard/GenealogyChart';
 export default function UserManagement() {
   const toast = useRef<Toast | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     isActive: { value: true, matchMode: 'equals' },
+
+    userId: { value: null, matchMode: 'contains' },
+    loginId: { value: null, matchMode: 'contains' },
+    userNm: { value: null, matchMode: 'contains' },
+    cellPhone: { value: null, matchMode: 'contains' },
+    'department.deptNm': { value: null, matchMode: 'contains' },
+    'position.positionNm': { value: null, matchMode: 'contains' },
+    'recommender.userNm': { value: null, matchMode: 'contains' },
   });
   const cm = useRef<ContextMenu | null>(null);
   const [contextSelectedUser, setContextSelectedUser] = useState<User | null>(null);
@@ -62,12 +70,12 @@ export default function UserManagement() {
 
   // --- 핸들러 ---
   const handleAddNew = () => {
-    setSelectedUser(null); // 폼 비우기 (신규)
+    setSelectedUserId(null); // 폼 비우기 (신규)
     setIsModalVisible(true);
   };
 
   const handleEdit = (user: User) => {
-    setSelectedUser(user); // 폼 채우기 (수정)
+    setSelectedUserId(user.userId); // 폼 채우기 (수정)
     setIsModalVisible(true);
   };
 
@@ -166,12 +174,13 @@ export default function UserManagement() {
         visible={isGenealogyVisible}
         onHide={() => {
           setIsGenealogyVisible(false);
-          // setContextSelectedUser(null); // 모달 닫을 때 초기화하고 싶다면 주석 해제 (안 해도 무방)
+          setContextSelectedUser(null); // 모달 닫을 때 초기화하고 싶다면 주석 해제 (안 해도 무방)
         }}
         style={{ width: '80vw', height: '90vh' }}
         header={`[${contextSelectedUser?.userNm}] 님 계보도`}
         maximizable
         modal
+        dismissableMask
       >
         {contextSelectedUser && (
           // 방금 수정한 GenealogyChart 컴포넌트 재사용 (targetUserId 전달)
@@ -182,7 +191,7 @@ export default function UserManagement() {
         visible={isModalVisible}
         onHide={() => setIsModalVisible(false)}
         onSave={handleSave}
-        userToEdit={selectedUser}
+        userIdToEdit={selectedUserId}
       />
 
       <div className="page-flex-container">
@@ -217,8 +226,6 @@ export default function UserManagement() {
                 const clickedUser = e.data as User;
 
                 setContextSelectedUser(clickedUser);
-                console.log(`${clickedUser.userNm} = clickedUser`);
-                console.log(`${contextSelectedUser?.userNm} = contextSelectedUser`);
 
                 cm.current?.show(e.originalEvent);
               }}
