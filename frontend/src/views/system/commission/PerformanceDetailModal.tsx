@@ -126,11 +126,12 @@ export default function PerformanceDetailModal({
         visible={visible}
         onHide={onHide}
         style={{ width: '1200px' }}
+        breakpoints={{ '1440px': '80vw', '960px': '95vw', '641px': '95vw' }}
         modal
         maximizable
         dismissableMask
       >
-        <div style={{ minHeight: '200px' }}>
+        <div style={{ minHeight: '300px' }}>
           <ReusableDataTable
             value={perfData?.details || []}
             dataKey="detailId"

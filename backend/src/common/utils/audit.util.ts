@@ -40,8 +40,8 @@ export function diffObjects(oldObj: any, newObj: any) {
       key === 'lastLoginAt' ||
       key === 'lastLoginAgent' ||
       key === 'recommenderPath' ||
-      key === 'lastLoginIp' ||
-      key === 'passwordChangedAt'
+      key === 'lastLoginIp'
+      // key === 'passwordChangedAt'
     ) {
       continue;
     }
@@ -83,6 +83,7 @@ export function maskSensitiveData(data: any): any {
     'secret',
     'auth_token',
     'authorization',
+    'residentidback',
   ];
 
   // 객체나 배열이 아니면 그대로 반환

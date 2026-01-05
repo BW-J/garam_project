@@ -9,7 +9,6 @@ import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
-import * as forge from 'node-forge';
 
 const CACHE_KEY_PUBLIC = 'rsa_public_key';
 const CACHE_KEY_PRIVATE = 'rsa_private_key';
@@ -44,35 +43,44 @@ export class CryptoService implements OnModuleInit {
     publicKey: string;
     privateKey: string;
   }> {
-    this.logger.log('Generating new RSA key pair...');
-    // 비동기 방식이 NestJS 환경에 더 적합
+    this.logger.log('Generating new RSA key pair (Native Crypto)...');
+
     return new Promise((resolve, reject) => {
-      forge.pki.rsa.generateKeyPair(
-        { bits: 2048, workers: -1 },
-        (err, keypair) => {
+      // 2048비트 키 생성
+      crypto.generateKeyPair(
+        'rsa',
+        {
+          modulusLength: 2048,
+          publicKeyEncoding: {
+            type: 'spki', // JSEncrypt 등 프론트엔드 호환용 (-----BEGIN PUBLIC KEY-----)
+            format: 'pem',
+          },
+          privateKeyEncoding: {
+            type: 'pkcs1', // Node.js privateDecrypt 호환용 (-----BEGIN RSA PRIVATE KEY-----)
+            format: 'pem',
+          },
+        },
+        (err, publicKey, privateKey) => {
           if (err) {
             this.logger.error('RSA key pair generation failed.', err);
             return reject(err);
           }
 
-          const publicKeyPem = forge.pki.publicKeyToPem(keypair.publicKey);
-          const privateKeyPem = forge.pki.privateKeyToPem(keypair.privateKey);
-
-          // 캐시에 저장 (ms 단위 TTL)
+          // 캐시에 저장
           Promise.all([
             this.cacheManager.set(
               CACHE_KEY_PUBLIC,
-              publicKeyPem,
+              publicKey,
               this.keyCacheTtl,
             ),
             this.cacheManager.set(
               CACHE_KEY_PRIVATE,
-              privateKeyPem,
+              privateKey,
               this.keyCacheTtl,
             ),
           ]).then(() => {
             this.logger.log('New RSA key pair generated and cached.');
-            resolve({ publicKey: publicKeyPem, privateKey: privateKeyPem });
+            resolve({ publicKey, privateKey });
           });
         },
       );
@@ -115,24 +123,28 @@ export class CryptoService implements OnModuleInit {
       const privateKey = await this.getPrivateKey();
 
       const buf = Buffer.from(encrypted, 'base64');
+
+      // Node.js crypto 모듈로 복호화
       const out = crypto.privateDecrypt(
-        { key: privateKey, padding: crypto.constants.RSA_PKCS1_PADDING },
+        {
+          key: privateKey,
+          padding: crypto.constants.RSA_PKCS1_PADDING,
+        },
         buf,
       );
+
       const decryptedString = out.toString('utf8');
 
       if (decryptedString.includes('\uFFFD')) {
-        throw new Error(
-          'Decryption resulted in invalid UTF-8, likely key mismatch.',
-        );
+        throw new Error('Decryption resulted in invalid UTF-8 (Key mismatch).');
       }
 
       return decryptedString;
     } catch (error) {
-      this.logger.error('Failed to decrypt password.', error.stack);
-      throw new BadRequestException(
-        '복호화에 실패했습니다. 키가 만료되었을 수 있으니 페이지를 새로고침하세요.',
-      );
+      // 에러 로그를 상세하게 출력 (스택 트레이스 포함)
+      this.logger.error(`Decryption failed: ${error.message}`, error.stack);
+
+      throw new BadRequestException('페이지를 새로고침 후 다시 시도해주세요.');
     }
   }
 }

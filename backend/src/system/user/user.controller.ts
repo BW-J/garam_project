@@ -72,6 +72,17 @@ export class UserController {
     return this.userService.findGenealogyTree(userId, maxDepth);
   }
 
+  @Permission('USER_MGMT', 'UPDATE')
+  @Patch('reset-password/:userId')
+  @Activity('비밀번호 초기화')
+  async resetPassword(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body('password') password: string,
+    @Req() req: AuthorizedRequest,
+  ): Promise<UserResponseDto> {
+    return this.userService.resetPassword(userId, password, req);
+  }
+
   /**
    * 내정보 수정
    * @param userId

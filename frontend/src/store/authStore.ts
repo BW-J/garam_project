@@ -49,7 +49,7 @@ interface AuthState {
 //                 단, accessToken은 탈취 위험이 있으므로 메모리 저장(persist 제거)이 더 안전할 수 있음.
 //                 이 경우 새로고침 시 토큰이 사라지므로, 앱 로드 시 /auth/refresh를 호출하여
 //                 자동 로그인(Silent Refresh)을 구현해야 함. 여기서는 일단 persist 사용.
-export const useAuthStore = create<AuthState>()((set, get) => ({
+export const useAuthStore = create<AuthState>()((set, _get) => ({
   user: null,
   accessToken: null,
   authorizedMenu: null,

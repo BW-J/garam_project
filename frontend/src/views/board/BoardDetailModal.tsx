@@ -141,7 +141,8 @@ export default function BoardDetailModal({
       header={header}
       modal
       className="responsive-dialog"
-      style={{ width: '800px' }}
+      style={{ width: '800px', height: '500px' }}
+      breakpoints={{ '1440px': '50vw', '960px': '75vw', '641px': '95vw' }}
       maximizable
       dismissableMask
     >

@@ -70,9 +70,6 @@ export default function MenuTable() {
     [addChildNode],
   );
 
-  const paginatorLeft = <Button type="button" icon="pi pi-refresh" text onClick={loadNodes} />;
-  const paginatorRight = <span />;
-
   const cardHeader = (
     <div className="flex justify-content-between align-items-center pt-3 px-3">
       <span className="p-card-title">메뉴 관리</span>
@@ -146,8 +143,6 @@ export default function MenuTable() {
             usePagination
             useGridlines={false}
             defaultRows={10}
-            paginatorLeft={paginatorLeft}
-            paginatorRight={paginatorRight}
             totalNodeCount={totalNodeCount}
             filters={filters}
             onFilter={onFilter}

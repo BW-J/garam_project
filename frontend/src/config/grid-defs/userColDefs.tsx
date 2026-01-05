@@ -199,6 +199,7 @@ export const getUserColumns = ({ onEdit, onDelete, onRestore, permissions }: Use
       <Column
         key="actions"
         header="관리"
+        alignHeader="center"
         body={actionTemplate}
         style={{ width: '6rem', textAlign: 'center' }}
       />,

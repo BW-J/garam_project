@@ -216,6 +216,7 @@ export default function UserManagement() {
               loading={loading}
               usePagination
               filterDisplay="row"
+              selectionMode="single"
               defaultRows={10}
               scrollHeight="flex"
               filters={filters}

@@ -135,6 +135,66 @@ export class UserService extends BaseService<User> {
   }
 
   /**
+   * 비밀번호 초기화
+   * @param userId
+   * @param encryptedPassword
+   * @param req
+   * @returns
+   */
+  async resetPassword(
+    userId: number,
+    encryptedPassword: string,
+    req?: AuthorizedRequest,
+  ): Promise<UserResponseDto> {
+    const adminUserId = req?.user?.sub;
+
+    // 1. [Audit] 변경 전 데이터 조회 및 주입
+    const beforeUser = await this.userRepository.findOne({ where: { userId } });
+    if (!beforeUser) throw new NotFoundException(`User ID ${userId} not found`);
+
+    // AuditInterceptor가 '변경 전' 상태를 알 수 있도록 설정
+    if (req) {
+      req['_auditBefore'] = JSON.parse(JSON.stringify(beforeUser));
+    }
+
+    // 2. 트랜잭션 시작
+    const savedUser = await this.userRepository.manager.transaction(
+      async (manager) => {
+        // 3. 비밀번호 검증 (정책 Skip)
+        const plainPassword =
+          await this.userPasswordService.validateNewPassword(
+            manager,
+            userId,
+            encryptedPassword,
+            true, // isReset: true
+          );
+
+        // 4. 엔티티 업데이트
+        // (beforeUser 객체를 직접 수정하여 save하면 TypeORM이 변경점만 감지하므로 효율적)
+        beforeUser.password = await bcrypt.hash(plainPassword, 10);
+        if (adminUserId != null) {
+          beforeUser.updatedBy = adminUserId;
+        }
+        beforeUser.passwordChangedAt = null; // 만료 처리
+
+        const result = await manager.save(User, beforeUser);
+
+        // 5. 패스워드 히스토리 저장
+        await this.userPasswordService.savePasswordHistory(
+          manager,
+          result.userId,
+          result.password,
+        );
+
+        return result;
+      },
+    );
+
+    // 6. 결과 반환 (AuditInterceptor가 'after'로 사용할 객체)
+    return plainToInstance(UserResponseDto, savedUser);
+  }
+
+  /**
    * 사용자 수정
    * @param userId
    * @param dto

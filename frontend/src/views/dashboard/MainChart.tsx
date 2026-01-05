@@ -4,14 +4,14 @@ import { Card } from 'primereact/card';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import api from 'src/api/axios';
 import { useAuthStore } from 'src/store/authStore';
-import type { PerformanceData, CommissionSummary } from 'src/config/types/Commission';
+import type { Performance, CommissionSummary } from 'src/config/types/Commission';
 import { Calendar } from 'primereact/calendar';
 
 /**
  * API 응답 데이터를 월별로 집계하는 헬퍼 함수
  */
 const processData = (
-  data: PerformanceData[] | CommissionSummary[],
+  data: Performance[] | CommissionSummary[],
   dateField: string,
   valueField: string,
 ): Map<string, number> => {
@@ -179,7 +179,7 @@ export default function MainChart() {
   );
 
   return (
-    <Card header={header} title={cardTitle} className="card-flex-full h-full">
+    <Card header={header} className="card-flex-full h-full">
       {loading ? (
         <div className="flex justify-content-center align-items-center" style={{ height: '300px' }}>
           <ProgressSpinner style={{ width: '50px', height: '50px' }} strokeWidth="8" />

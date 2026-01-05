@@ -61,6 +61,24 @@ export class AuditInterceptor implements NestInterceptor {
           changes = after; // 신규 데이터 전체 기록
         } else if (operation === 'UPDATE') {
           changes = diffObjects(before, after); // 변경 필드만
+
+          if (changes && req.body && typeof req.body === 'object') {
+            const bodyKeys = Object.keys(req.body);
+
+            if (
+              changes['residentIdBack'] &&
+              !bodyKeys.includes('residentIdBack')
+            ) {
+              delete changes['residentIdBack'];
+            }
+
+            if (
+              changes['passwordChangedAt'] &&
+              !bodyKeys.includes('password')
+            ) {
+              delete changes['passwordChangedAt'];
+            }
+          }
         } else if (operation === 'DELETE') {
           changes = before; // 삭제 전 데이터 전체 기록
         }

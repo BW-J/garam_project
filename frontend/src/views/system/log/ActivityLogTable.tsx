@@ -47,9 +47,9 @@ export default function ActivityLogTable() {
   const logCols = useMemo(() => getActivityLogColumns(), []);
 
   const cardHeader = (
-    <div className="flex justify-content-between align-items-center pt-3 px-3">
+    <div className="flex justify-content-between align-items-center flex-wrap pt-3 px-3">
       <span className="p-card-title">행위 로그</span>
-      <div className="flex gap-2 align-items-center">
+      <div className="flex flex-wrap gap-2 align-items-center">
         <div className="flex align-items-center gap-2">
           <Calendar
             value={startDate}

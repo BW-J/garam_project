@@ -146,7 +146,7 @@ export default function BoardFormModal({
   return (
     <Dialog
       visible={visible}
-      style={{ width: '500px' }}
+      style={{ width: '800px' }}
       breakpoints={{ '1440px': '50vw', '960px': '75vw', '641px': '95vw' }}
       header={isEdit ? '게시글 수정' : '새 게시글 작성'}
       modal

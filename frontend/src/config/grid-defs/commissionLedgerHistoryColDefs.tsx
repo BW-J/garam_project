@@ -56,6 +56,7 @@ export const getCommissionLedgerHistoryColumns = () => {
       key="amount"
       field="amount"
       header="금액"
+      alignHeader={'right'}
       body={currencyBody}
       sortable
       style={{ minWidth: '8rem', textAlign: 'right', fontWeight: 'bold' }}

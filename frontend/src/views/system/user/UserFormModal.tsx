@@ -195,7 +195,7 @@ export default function UserFormModal({
       acceptLabel: '초기화',
       rejectLabel: '취소',
       accept: async () => {
-        if (!userIdToEdit) return;
+        if (userIdToEdit == null) return;
         if (!publicKey) {
           toast.current?.show({ severity: 'error', summary: '오류', detail: '암호화 키 오류' });
           return;
@@ -213,7 +213,7 @@ export default function UserFormModal({
 
           // 2. 비밀번호만 업데이트하는 API 호출 (기존 update API 재활용)
           //    다른 필드는 보내지 않고 password만 보냅니다.
-          await api.patch(`/system/users/${userIdToEdit}`, {
+          await api.patch(`/system/users/reset-password/${userIdToEdit}`, {
             password: encryptedPassword,
           });
 

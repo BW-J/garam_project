@@ -318,3 +318,35 @@
   max-width: 120px !important;
   text-align: center;
 }
+
+@media screen and (max-width: 640px) {
+  .p-paginator {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* 개수 선택 드롭다운 (RowsPerPageDropdown) */
+  .p-paginator .p-dropdown {
+    order: 1; /* 순서 1번 (가장 위) */
+
+    margin-left: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  /* 나머지 페이지네이션 버튼들 */
+  .p-paginator .p-paginator-pages,
+  .p-paginator .p-paginator-first,
+  .p-paginator .p-paginator-prev,
+  .p-paginator .p-paginator-next,
+  .p-paginator .p-paginator-last {
+    order: 2; /* 순서 2번 (아래) */
+  }
+
+  /* 현재 페이지 리포트 (n / 총 m 건) */
+  .p-paginator .p-paginator-current {
+    order: 3; /* 맨 아래 */
+    width: 100%;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+}

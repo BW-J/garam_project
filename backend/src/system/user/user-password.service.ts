@@ -20,17 +20,20 @@ export class UserPasswordService {
     manager: EntityManager,
     userId: number | null,
     encryptedPassword: string,
+    isReset: boolean = false,
   ): Promise<string> {
     // 4-1. 복호화
     const plainPassword =
       await this.cryptoService.decryptPassword(encryptedPassword);
 
-    // 4-2. 복잡도 검사
-    await this.validatePasswordPolicy(plainPassword);
+    if (!isReset) {
+      // 4-2. 복잡도 검사
+      await this.validatePasswordPolicy(plainPassword);
 
-    // 4-3. 재사용 검사
-    if (userId !== null) {
-      await this.validatePasswordReuse(manager, userId, plainPassword);
+      // 4-3. 재사용 검사
+      if (userId !== null) {
+        await this.validatePasswordReuse(manager, userId, plainPassword);
+      }
     }
 
     return plainPassword;

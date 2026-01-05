@@ -78,7 +78,8 @@ export default function ManagerPerformanceDataTable() {
     loadRows();
   }, [loadRows]);
 
-  const isEditable = useMemo(() => isEditablePeriod(selectedMonth), [selectedMonth]);
+  const _isEditable = useMemo(() => isEditablePeriod(selectedMonth), [selectedMonth]);
+  console.log(_isEditable);
 
   // 4. (관리자) Excel 업로드 핸들러
   const handleUpload = async (e: FileUploadHandlerEvent) => {
@@ -166,8 +167,10 @@ export default function ManagerPerformanceDataTable() {
     setAdjVisible(true);
   };
 
-  const canEdit = permissionSet.canEdit && isEditable;
-  const canCreate = permissionSet.canCreate && isEditable;
+  // const canEdit = permissionSet.canEdit && isEditable;
+  const canEdit = permissionSet.canEdit;
+  // const canCreate = permissionSet.canCreate && isEditable;
+  const canCreate = permissionSet.canCreate;
   const columns = useMemo(
     () =>
       getManagerPerformanceColumns({
@@ -181,7 +184,7 @@ export default function ManagerPerformanceDataTable() {
   const cardHeader = (
     <div className="flex justify-content-between align-items-center pt-3 px-3 flex-wrap gap-2">
       <span className="p-card-title">실적 데이터 관리</span>
-      <div className="flex align-items-center gap-2">
+      <div className="flex flex-wrap align-items-center gap-2">
         <Calendar
           value={selectedMonth ? new Date(selectedMonth) : null}
           onChange={(e) => {
@@ -274,13 +277,13 @@ export default function ManagerPerformanceDataTable() {
         onSave={loadRows}
       />
       <Card header={cardHeader} className="card-flex-full">
-        {!isEditable && (permissionSet.canEdit || permissionSet.canCreate) && (
+        {/* {!isEditable && (permissionSet.canEdit || permissionSet.canCreate) && (
           <Message
             severity="info"
             text="데이터 수정 및 조정은 '지난 달' 데이터에 한해 가능합니다."
             className="w-full mb-2"
           />
-        )}
+        )} */}
         {needsRecalc && (
           <Message
             severity="warn"

@@ -40,16 +40,20 @@ export const getManagerPerformanceColumns = ({
       field="user.department.deptNm"
       header="부서"
       sortable
-      className="hidden-on-mobile"
       style={{ minWidth: '4rem' }}
+      headerClassName="hidden-on-mobile"
+      bodyClassName="hidden-on-mobile"
+      filterHeaderClassName="hidden-on-mobile"
     />,
     <Column
       key="posNm"
       field="user.position.positionNm"
       header="직급"
       sortable
-      className="hidden-on-mobile"
       style={{ minWidth: '4rem' }}
+      headerClassName="hidden-on-mobile"
+      bodyClassName="hidden-on-mobile"
+      filterHeaderClassName="hidden-on-mobile"
     />,
 
     <Column

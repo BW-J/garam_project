@@ -130,6 +130,7 @@ export default function CommissionDetailModal({
       modal
       className="responsive-dialog"
       style={{ width: '1200px' }}
+      breakpoints={{ '1440px': '80vw', '960px': '95vw', '641px': '95vw' }}
       dismissableMask
       maximizable
       contentStyle={{ minHeight: '400px' }}

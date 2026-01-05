@@ -15,7 +15,7 @@ interface AppHeaderProps {
 
 const AppHeader = ({ onToggleSidebar }: AppHeaderProps) => {
   const navigate = useNavigate();
-  const { changeTheme } = useContext(PrimeReactContext);
+  const { changeTheme: _changeTheme } = useContext(PrimeReactContext);
   const user = useAuthStore((state) => state.user);
   const { logout } = useAuthActions();
   const userMenuRef = useRef<Menu>(null);

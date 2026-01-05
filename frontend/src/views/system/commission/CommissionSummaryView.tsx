@@ -149,7 +149,7 @@ export default function CommissionSummaryView({
   const cardHeader = (
     <div className="flex justify-content-between align-items-center pt-3 px-3 flex-wrap gap-2">
       <span className="p-card-title">{title}</span>
-      <div className="flex align-items-center gap-2">
+      <div className="flex flex-wrap align-items-center gap-2">
         <label htmlFor={`monthpicker-${mode}`} className="p-sr-only">
           월 선택
         </label>

@@ -36,9 +36,30 @@ export const getCommissionSummaryColumns = ({ mode, onAdjust, isEditable }: Summ
         showClearButton={false}
         filterMatchMode="contains"
       />,
-      <Column field="loginId" header="ID" sortable className="hidden-on-mobile" />,
-      <Column field="deptNm" header="부서" sortable className="hidden-on-mobile" />,
-      <Column field="positionNm" header="직급" sortable className="hidden-on-mobile" />,
+      <Column
+        field="loginId"
+        header="ID"
+        sortable
+        headerClassName="hidden-on-mobile"
+        bodyClassName="hidden-on-mobile"
+        filterHeaderClassName="hidden-on-mobile"
+      />,
+      <Column
+        field="deptNm"
+        header="부서"
+        sortable
+        headerClassName="hidden-on-mobile"
+        bodyClassName="hidden-on-mobile"
+        filterHeaderClassName="hidden-on-mobile"
+      />,
+      <Column
+        field="positionNm"
+        header="직급"
+        sortable
+        headerClassName="hidden-on-mobile"
+        bodyClassName="hidden-on-mobile"
+        filterHeaderClassName="hidden-on-mobile"
+      />,
     );
   }
   columns.push(

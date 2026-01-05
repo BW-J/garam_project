@@ -94,6 +94,7 @@ export const getPerformanceDetailColumns = ({ isEditable, onDelete }: DetailProp
         key="rowEditor"
         rowEditor
         header="수정"
+        alignHeader="center"
         headerStyle={{ width: '5rem', minWidth: '5rem' }}
         bodyStyle={{ textAlign: 'center' }}
       />,
