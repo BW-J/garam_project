@@ -17,6 +17,7 @@ export class UserGenealogyNodeDto {
     depth: number;
     position?: PositionResponseDto | null;
     lastMonthPerf?: number | null;
+    deletedAt?: Date;
   };
 
   @Expose()

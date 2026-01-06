@@ -67,8 +67,8 @@ export class UserController {
     @Param('userId', ParseIntPipe) userId: number,
     @Query('depth', new ParseIntPipe({ optional: true })) depth?: number,
   ): Promise<UserGenealogyNodeDto[]> {
-    // 99단계까지 조회 (사실상 제한 없음)
-    const maxDepth = 99;
+    // 9999단계까지 조회 (사실상 제한 없음)
+    const maxDepth = 9999;
     return this.userService.findGenealogyTree(userId, maxDepth);
   }
 

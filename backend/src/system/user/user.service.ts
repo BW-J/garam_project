@@ -419,6 +419,7 @@ export class UserService extends BaseService<User> {
         cellPhone: true,
         isActive: true,
         createdAt: true,
+        deletedAt: true,
         position: {
           positionId: true,
           positionNm: true,
@@ -445,6 +446,7 @@ export class UserService extends BaseService<User> {
     const user = await this.userRepository.findOne({
       where: { userId },
       relations: ['department', 'position', 'recommender'],
+      withDeleted: true,
     });
     if (!user) throw new NotFoundException(`User ID ${userId} not found`);
     return plainToInstance(UserResponseDto, user);
@@ -462,8 +464,9 @@ export class UserService extends BaseService<User> {
   ): Promise<UserGenealogyNodeDto[]> {
     // 1. 루트 사용자(본인) 정보 조회
     const rootUser = await this.userRepository.findOne({
-      where: { userId: currentUserId, deletedAt: IsNull() },
+      where: { userId: currentUserId },
       relations: ['position'],
+      withDeleted: true,
     });
 
     if (!rootUser) {
@@ -490,10 +493,18 @@ export class UserService extends BaseService<User> {
     const users = await this.userRepository.find({
       where: {
         userId: In(allUserIds),
-        deletedAt: IsNull(),
+        //deletedAt: IsNull(),
       },
       relations: ['position'],
-      select: ['userId', 'userNm', 'loginId', 'recommenderId', 'position'],
+      select: [
+        'userId',
+        'userNm',
+        'loginId',
+        'recommenderId',
+        'position',
+        'deletedAt',
+      ],
+      withDeleted: true,
     });
 
     // 2-1. 전월 실적 일괄 조회
@@ -527,6 +538,7 @@ export class UserService extends BaseService<User> {
           depth: depth,
           position: plainToInstance(PositionResponseDto, user.position),
           lastMonthPerf: perf,
+          deletedAt: user.deletedAt,
         },
         children: [],
       };

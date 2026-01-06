@@ -313,7 +313,10 @@ export default function UserFormModal({
   );
 
   const filteredUserList = useMemo(() => {
-    return userList.filter((u) => !u.deletedAt).filter((u) => isNew || u.userId !== userIdToEdit);
+    return userList
+      .filter((u) => !u.deletedAt)
+      .filter((u) => isNew || u.userId !== userIdToEdit)
+      .filter((u) => u.userId !== 0);
   }, [userList, userIdToEdit, isNew]);
 
   const handleAddressComplete = (data: { zonecode: string; address: string }) => {

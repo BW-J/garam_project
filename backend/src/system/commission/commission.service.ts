@@ -16,6 +16,8 @@ import {
   Brackets,
   LessThanOrEqual,
   MoreThan,
+  Not,
+  MoreThanOrEqual,
 } from 'typeorm';
 import * as xlsx from 'xlsx';
 import { UpdateIqaDto } from './dto/update-iqa.dto';
@@ -106,6 +108,8 @@ export class CommissionService {
   ) {
     this.logger.log(`Starting performance upload for ${yearMonth}...`);
 
+    const uploadMonthStart = dayjs(yearMonth).startOf('month').toDate();
+
     // 1. Excel 파싱
     const workbook = xlsx.read(file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
@@ -116,9 +120,10 @@ export class CommissionService {
     const loginIds = jsonData.map((row) => row['사번']).filter(Boolean);
     const users = await this.userRepo.find({
       where: { loginId: In(loginIds) },
-      select: ['userId', 'loginId'],
+      select: ['userId', 'loginId', 'deletedAt'],
+      withDeleted: true,
     });
-    const userMap = new Map(users.map((u) => [u.loginId, u.userId]));
+    const userMap = new Map(users.map((u) => [u.loginId, u]));
 
     // 3. 트랜잭션 처리 (기존 데이터 삭제 -> 신규 데이터 생성)
     await this.perfRepo.manager.transaction(async (manager) => {
@@ -127,12 +132,20 @@ export class CommissionService {
 
       for (const row of jsonData) {
         const loginId = row['사번'];
-        const userId = userMap.get(loginId);
-        if (!userId) {
+        const user = userMap.get(loginId);
+        if (!user) {
           this.logger.warn(`Skipping unknown loginId: ${loginId}`);
           continue;
         }
 
+        if (user.deletedAt && user.deletedAt < uploadMonthStart) {
+          this.logger.warn(
+            `Skipping resigned user: ${loginId} (Resigned: ${dayjs(user.deletedAt).format('YYYY-MM-DD')}, UploadMonth: ${yearMonth})`,
+          );
+          continue;
+        }
+
+        const userId = user.userId;
         // (2) 상세 데이터 계산 (15년납 이하: 50%, 이상: 100%)
         const below15 = this.calcDetailAmount(row, '15년납 이하', 0.5);
         const above15 = this.calcDetailAmount(row, '15년납 이상', 1.0);
@@ -196,6 +209,7 @@ export class CommissionService {
     // 1. 데이터 조회 (사용자 정보, 은행 정보 포함)
     const qb = this.ledgerRepo
       .createQueryBuilder('ledger')
+      .withDeleted()
       .leftJoinAndSelect('ledger.user', 'user')
       .leftJoinAndSelect('user.bank', 'bank') // 은행 정보 Join
       .where('ledger.yearMonth = :yearMonth', { yearMonth })
@@ -212,8 +226,8 @@ export class CommissionService {
     // 2. 엑셀 데이터 매핑
     const excelData = results.map((item) => ({
       귀속월: item.yearMonth,
-      사번: item.user.loginId,
-      성명: item.user.userNm,
+      사번: item.user.loginId || '(삭제됨)',
+      성명: item.user.userNm || '(삭제됨)',
       생년월일: item.user.residentIdFront,
       핸드폰번호: item.user.cellPhone || '',
       은행명: item.user.bank?.bankName || item.user.bankCode || '',
@@ -407,13 +421,19 @@ export class CommissionService {
   async calculateRecruitmentCommission(yearMonth: string, currentUser: any) {
     this.logger.log(`Starting commission calculation for ${yearMonth}...`);
     const calculationDate = dayjs(yearMonth).toDate();
+    const startOfMonth = dayjs(yearMonth).startOf('month').toDate();
     const oneYearAgo = dayjs(calculationDate).subtract(1, 'year').toDate();
 
     // --- [개선] 1. 자격 검증에 필요한 데이터 일괄 조회 ---
     // 1-1. 모든 활성 사용자 정보
     const users = await this.userRepo.find({
-      where: { isActive: true, deletedAt: IsNull() },
-      select: ['userId', 'isActive', 'appointmentDate'],
+      withDeleted: true,
+
+      where: [
+        { deletedAt: IsNull(), userId: Not(0) },
+        { deletedAt: MoreThanOrEqual(startOfMonth), userId: Not(0) },
+      ],
+      select: ['userId', 'isActive', 'appointmentDate', 'deletedAt'],
     });
     const userMap = new Map(users.map((u) => [u.userId, u]));
 
@@ -452,7 +472,10 @@ export class CommissionService {
     const allAncestors = await this.closureRepo.find({
       where: {
         descendantId: In(perfUserIds),
-        depth: Between(1, 10), // 1~10단계
+        depth: MoreThan(0), // 1~10단계
+      },
+      order: {
+        depth: 'ASC', // 가까운 조상부터 순서대로 오도록 정렬 필수
       },
     });
 
@@ -477,14 +500,33 @@ export class CommissionService {
       // 4-1. [개선] DB 쿼리 대신 Map에서 상위 조상 조회
       const ancestors = ancestorMap.get(perf.userId) || [];
 
+      // 만약 DB 정렬이 보장되지 않을 경우를 대비해 안전하게 깊이순 정렬
+      ancestors.sort((a, b) => a.depth - b.depth);
+
+      //활성 지급 단계 카운터
+      let paidCount = 0;
+
       for (const ancestor of ancestors) {
+        // 10단계를 다 채웠으면 탐색 중단
+        if (paidCount >= 10) break;
+
+        if (ancestor.ancestorId === 0) continue;
+
+        const ancestorUser = userMap.get(ancestor.ancestorId);
+        // 비활성 사용자(퇴사자)는 Skip (카운트 증가 안 함 -> 롤업 효과)
+        if (!ancestorUser) {
+          continue;
+        }
+
         // 4. (핵심) 수급자 자격 검사
         const { isEligible, note } = this.checkRecruitmentEligibility_InMemory(
-          userMap.get(ancestor.ancestorId), // Map에서 사용자 정보 전달
+          ancestorUser, // Map에서 사용자 정보 전달
           performanceMap, // Map에서 실적 합계 전달
           oneYearAgo,
+          startOfMonth,
         );
 
+        // 자격 미달이어도 '활성 사용자'이므로 단계(Count)는 차지함 (금액만 0원)
         const actualAmount = isEligible ? payoutPerLevel : 0;
 
         // 5. 원장(Ledger) 항목 생성
@@ -497,7 +539,8 @@ export class CommissionService {
           details: {
             sourceAmount: perf.truncatedAmount,
             rate: 0.1,
-            depth: ancestor.depth,
+            physicalDepth: ancestor.depth,
+            logicalDepth: paidCount + 1,
             originalAmount: payoutPerLevel,
             isEligible: isEligible,
             note: note,
@@ -505,6 +548,8 @@ export class CommissionService {
           createdBy: currentUser.sub,
           updatedBy: currentUser.sub,
         });
+
+        paidCount++;
       }
     }
     this.logger.log(
@@ -638,7 +683,7 @@ export class CommissionService {
     }
 
     // [개선] (4/4) 모든 산하 직원의 '전체' 실적 일괄 조회
-    // [핵심 수정] 모든 산하 직원의 '입사 후 7개월치' 실적만 일괄 조회
+    // [핵심 수정] 모든 산하 직원의 '위촉 후 7개월치' 실적만 일괄 조회
     // (15일 룰은 JS에서, 6개월 룰도 JS에서 처리하므로 7개월치만 가져오면 됨)
     const allPerfData =
       allDownlineIds.size === 0
@@ -730,7 +775,7 @@ export class CommissionService {
 
       validPromotionHistory.push(history);
 
-      // 5. [개선] '입사 N개월차' 신규 산하 직원 목록 조회 (인메모리)
+      // 5. [개선] '위촉 N개월차' 신규 산하 직원 목록 조회 (인메모리)
       const N_Employment = N_Payment;
       const newDownlines = this.findQualifiedNewDownlines_InMemory(
         user,
@@ -802,6 +847,7 @@ export class CommissionService {
   ) {
     const [year, month] = yearMonth.split('-').map(Number);
     const nextMonthDate = new Date(year, month, 1);
+    const startOfMonth = dayjs(yearMonth).startOf('month').toDate();
 
     // 1. 해당 월에 이미 실적 데이터가 있는 사용자 ID 목록 조회
     const existingUserIds = await this.perfRepo
@@ -816,10 +862,17 @@ export class CommissionService {
     const qb = this.userRepo
       .createQueryBuilder('user')
       .select('user.userId')
-      .where('user.isActive = :isActive', { isActive: true })
-      .andWhere('user.deletedAt IS NULL')
+      .withDeleted()
+      //.where('user.isActive = :isActive', { isActive: true })
+      .where('1=1')
       .andWhere('user.appointmentDate < :nextMonthDate', { nextMonthDate })
-      .andWhere('user.userId != 0'); // 관리자 계정 제외
+      .andWhere('user.userId != 0') // 관리자 계정 제외
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('user.deletedAt IS NULL') // 재직자
+            .orWhere('user.deletedAt >= :startOfMonth', { startOfMonth }); // 그 달 이후에 퇴사한 사람
+        }),
+      );
 
     if (excludedIds.length > 0) {
       qb.andWhere('user.userId NOT IN (:...ids)', { ids: excludedIds });
@@ -899,6 +952,7 @@ export class CommissionService {
   ) {
     const qb = this.perfRepo
       .createQueryBuilder('perf')
+      .withDeleted()
       .leftJoinAndSelect('perf.user', 'user'); // 사용자 정보 JOIN
 
     if (query.id) {
@@ -1017,6 +1071,7 @@ export class CommissionService {
   ) {
     const qb = this.ledgerHistoryRepo
       .createQueryBuilder('history')
+      .withDeleted()
       .leftJoinAndSelect('history.ledger', 'ledger')
       .leftJoinAndSelect('ledger.user', 'user')
       .leftJoinAndSelect('history.sourceUser', 'sourceUser');
@@ -1077,9 +1132,15 @@ export class CommissionService {
     user: User | undefined,
     performanceMap: Map<number, number>,
     oneYearAgo: Date,
+    calculationStartOfMonth: Date,
   ): { isEligible: boolean; note: string } {
-    if (!user || !user.isActive) {
-      return { isEligible: false, note: '수급자 정보 없음 또는 비활성' };
+    if (!user) {
+      return { isEligible: false, note: '수급자 정보 없음' };
+    }
+
+    if (user.deletedAt && user.deletedAt < calculationStartOfMonth) {
+      // 이미 맵에서 걸러졌어야 하지만, 혹시 모르니 방어 코드
+      return { isEligible: false, note: '지급 대상 기간 아님 (과거 퇴사)' };
     }
 
     if (!user.appointmentDate) {
@@ -1090,10 +1151,10 @@ export class CommissionService {
 
     // 1. [자격 1] 위촉 1년 미만
     if (effectiveJoinDate && effectiveJoinDate > oneYearAgo) {
-      return { isEligible: true, note: '입사 1년 미만 (자동 충족)' };
+      return { isEligible: true, note: '위촉 1년 미만 (자동 충족)' };
     }
 
-    // 2. [자격 2] 입사 1년 초과 (최근 1년 누적 실적 300만원 검사)
+    // 2. [자격 2] 위촉 1년 초과 (최근 1년 누적 실적 300만원 검사)
     // [개선] DB 쿼리 대신 Map에서 조회
     const total = performanceMap.get(user.userId) || 0;
 
@@ -1121,6 +1182,7 @@ export class CommissionService {
   ): Promise<CommissionSummaryResponseDto[]> {
     const qb = this.ledgerRepo
       .createQueryBuilder('ledger')
+      .withDeleted()
       .leftJoin('ledger.user', 'user')
       .leftJoin('user.department', 'dept')
       .leftJoin('user.position', 'pos')
@@ -1135,8 +1197,9 @@ export class CommissionService {
         'ledger.totalAmount AS "totalAmount"',
         '0 AS "itemCount"',
       ])
-      .where('user.isActive = :isActive', { isActive: true })
-      .andWhere('user.deletedAt IS NULL');
+      .where('1=1');
+    //.where('user.isActive = :isActive', { isActive: true })
+    //.andWhere('user.deletedAt IS NULL');
 
     if (yearMonth) {
       qb.andWhere('ledger.yearMonth = :yearMonth', { yearMonth });

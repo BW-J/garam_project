@@ -15,6 +15,7 @@ interface GenealogyNode {
     depth: number;
     position?: { positionNm: string } | null;
     lastMonthPerf?: number; // [추가]
+    deletedAt?: Date;
   };
   children: GenealogyNode[];
   label?: string;
@@ -41,6 +42,7 @@ const nodeTemplate = (node: OrganizationChartNodeData) => {
   const data = genealogyNode.data;
   const perf = data.lastMonthPerf || 0;
   const nodeId = `json-node-${Math.random().toString(36).substring(2, 9)}`;
+  const isDeleted = !!data.deletedAt;
 
   const bgColor = perf > 0 ? '#E3F2FD' : perf < 0 ? '#FFE6E9' : '#FAFAFA';
 
@@ -54,13 +56,29 @@ const nodeTemplate = (node: OrganizationChartNodeData) => {
         // wrapper.style.border = '1px solid #ddd';
         wrapper.style.borderRadius = '12px';
         // wrapper.style.padding = '12px';
+        if (isDeleted) {
+          wrapper.style.opacity = '0.6'; // 반투명
+          wrapper.style.filter = 'grayscale(100%)'; // 흑백 처리
+        } else {
+          wrapper.style.opacity = '1';
+          wrapper.style.filter = 'none';
+        }
       }
     }
   });
 
   return (
-    <div data-nodekey={nodeId}>
-      <div className="font-bold text-base">{data.userNm}</div>
+    <div data-nodekey={nodeId} style={{ cursor: isDeleted ? 'default' : 'pointer' }}>
+      <div
+        className="font-bold text-base"
+        style={{
+          textDecoration: isDeleted ? 'line-through' : 'none',
+          color: isDeleted ? '#666' : 'inherit',
+        }}
+      >
+        {data.userNm}
+        {isDeleted && <span className="text-red-500 ml-1 font-normal">(퇴사)</span>}
+      </div>
       <div className="text-color-secondary text-xs mb-2">({data.loginId})</div>
 
       <div className="flex flex-column gap-1 align-items-center">

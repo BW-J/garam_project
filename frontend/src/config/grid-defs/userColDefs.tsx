@@ -178,6 +178,7 @@ export const getUserColumns = ({ onEdit, onDelete, onRestore, permissions }: Use
       filterMatchMode="equals"
       style={{ minWidth: '6rem', textAlign: 'center' }}
       filter
+      alignHeader="center"
       showFilterMenu={false}
       showClearButton={false}
       filterElement={booleanFilterTemplate} // (주의: 이 필터는 '활성/비활성'만 필터링)
@@ -186,6 +187,7 @@ export const getUserColumns = ({ onEdit, onDelete, onRestore, permissions }: Use
       key="deletedAt"
       field="deletedAt"
       header="삭제 여부"
+      alignHeader="center"
       body={deletedBody}
       style={{ minWidth: '8rem', textAlign: 'center' }}
       headerClassName="hidden-on-mobile"
